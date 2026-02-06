@@ -23,7 +23,7 @@
 - Check if `docs/sessions/YYYY-MM-DD.md` exists for today
 - If not, create it with current date using format in `docs/sessions/2026-02-06.md`
 - Add current objectives based on user's request
-- Log this in `WORKLOG.md` under current session
+- Log this in `docs/WORKLOG.md` under current session
 
 **DURING SESSION:**
 - Track all code changes in the session file under "Changes Made" table
@@ -33,7 +33,7 @@
 - Reference relevant log entries when documenting issues
 
 **END OF SESSION / WHEN CONTEXT SWITCHES:**
-- Update `WORKLOG.md`:
+- Update `docs/WORKLOG.md`:
   - Move session from "Current Session" to "Recent Sessions" table
   - Update task checkboxes in "Active Tasks"
   - Add session to the history table with date, focus, and git commits
@@ -78,7 +78,7 @@
 2. Check: Does this affect the prompt? (Modify `prompt.js`)
 3. Check: Is this user-specific? (Use `relationships.js`)
 4. Log to file: All major operations logged via `logger`
-5. Document: Add to `WORKLOG.md` and this session file
+5. Document: Add to `docs/WORKLOG.md` and this session file
 
 ## File Organization
 ```
