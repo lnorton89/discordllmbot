@@ -26,7 +26,7 @@ try {
     process.exit(1)
 }
 
-client.once('ready', () => {
+client.once('clientReady', () => {
     logger.info(`✓ Logged in as ${client.user.tag}`)
 })
 
