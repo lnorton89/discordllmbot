@@ -12,7 +12,8 @@ export async function updateDiscordProfile(client, botConfig) {
     if (botConfig.username && botConfig.username !== client.user.username) {
         try {
             await client.user.setUsername(botConfig.username)
-            logger.info(`✓ Updated Discord username to "${botConfig.username}"`)
+            logger.api(`→ Discord API: user.setUsername()`)
+            logger.api(`  New username: ${botConfig.username}`)
             updates.push('username')
         } catch (err) {
             if (err.message?.includes('rate limited') || err.code === 429) {
@@ -35,10 +36,18 @@ export async function updateDiscordProfile(client, botConfig) {
             // Check if avatar URL is valid
             if (!isValidImageUrl(botConfig.avatarUrl)) {
                 logger.warn(`Invalid avatar URL in config: ${botConfig.avatarUrl}`)
-            } else if (botConfig.avatarUrl !== client.user.avatarURL()) {
-                await client.user.setAvatar(botConfig.avatarUrl)
-                logger.info(`✓ Updated Discord avatar`)
-                updates.push('avatar')
+            } else {
+                // Get current avatar URL (strip query params for comparison)
+                const currentAvatarUrl = client.user.avatarURL()
+                const currentAvatarBase = currentAvatarUrl ? currentAvatarUrl.split('?')[0] : null
+                const configAvatarBase = botConfig.avatarUrl.split('?')[0]
+                
+                if (configAvatarBase !== currentAvatarBase) {
+                    await client.user.setAvatar(botConfig.avatarUrl)
+                    logger.api(`→ Discord API: user.setAvatar()`)
+                    logger.api(`  New avatar URL: ${botConfig.avatarUrl.substring(0, 100)}...`)
+                    updates.push('avatar')
+                }
             }
         } catch (err) {
             if (err.message?.includes('rate limited') || err.code === 429) {
