@@ -67,6 +67,9 @@ client.on('messageCreate', async (message) => {
 
     if (!message.mentions.has(client.user)) return
 
+    // Log that bot was mentioned
+    logger.info(`@mention from ${message.author.username} in #${message.channel.name}: "${message.content.substring(0, 100)}"`)
+
     const relationship = getRelationship(
         message.guild.id,
         message.author.id
@@ -100,10 +103,13 @@ client.on('messageCreate', async (message) => {
             } else {
                 await message.reply(reply)
             }
+            
+            // Log successful reply
+            logger.info(`✓ Replied to ${message.author.username}: "${reply.substring(0, 80)}"`)
         }
     } catch (err) {
-        logger.error('Failed to generate reply', err)
-        await message.reply("brain lag, one sec")
+        // Log error for debugging, but don't reply to user
+        logger.error(`Failed to generate reply for ${message.author.username}`, err)
     }
 })
 
