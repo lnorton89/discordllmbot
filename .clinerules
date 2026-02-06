@@ -84,7 +84,6 @@
 ```
 src/
   index.js                           ← Main entry point (thin: setup + event registration)
-  client.js                          ← Discord client factory (optional)
   llm/gemini.js                      ← External API calls + retry logic
   memory/context.js                  ← Channel-specific history + persistence
   storage/                           ← Data I/O layer

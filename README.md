@@ -8,7 +8,6 @@ DiscordLLMBot is a lightweight Discord bot that uses Google's Gemini (Generative
 
 - `src/` — application source
   - `index.js` — main entry point and event loop (thin: just setup + event registration)
-  - `client.js` — Discord client factory (optional)
   - `llm/gemini.js` — Gemini REST client with retry/backoff
   - `memory/context.js` — in-memory per-channel message history with persistence
   - `personality/` — persona and relationships handling
