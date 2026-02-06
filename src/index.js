@@ -8,9 +8,20 @@ import { buildPrompt } from './utils/prompt.js'
 import { validateEnvironment } from './config/validation.js'
 import { logger, initializeLogger } from './utils/logger.js'
 import { saveRelationships } from './storage/persistence.js'
+import { getBotConfig } from './config/configLoader.js'
+import { updateDiscordProfile } from './utils/profileUpdater.js'
 
 // Initialize logging to file (truncates log file on startup)
 initializeLogger()
+
+// Load config early for use throughout app
+let botConfig
+try {
+    botConfig = getBotConfig()
+} catch (err) {
+    logger.error('Failed to load configuration', err)
+    process.exit(1)
+}
 
 const client = new Client({
     intents: [
@@ -29,8 +40,11 @@ try {
     process.exit(1)
 }
 
-client.once('clientReady', () => {
+client.once('clientReady', async () => {
     logger.info(`✓ Logged in as ${client.user.tag}`)
+    
+    // Update Discord profile if config differs from current state
+    await updateDiscordProfile(client, botConfig)
     
     const guildCount = client.guilds.cache.size
     if (guildCount === 0) {

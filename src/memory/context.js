@@ -1,7 +1,8 @@
 import { saveContext, loadContexts } from '../storage/persistence.js'
+import { getMemoryConfig } from '../config/configLoader.js'
 
 const memory = loadContexts()
-const MAX_MESSAGES = 12
+const { maxMessages } = getMemoryConfig()
 
 export function addMessage(channelId, author, content) {
     memory[channelId] ??= []
@@ -11,7 +12,7 @@ export function addMessage(channelId, author, content) {
         content
     })
 
-    if (memory[channelId].length > MAX_MESSAGES) {
+    if (memory[channelId].length > maxMessages) {
         memory[channelId].shift()
     }
 

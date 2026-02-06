@@ -90,6 +90,11 @@ src/
   personality/       ← Bot identity & user config
   utils/prompt.js    ← Behavior orchestration
   utils/logger.js    ← Logging to console + file
+  utils/profileUpdater.js ← Discord profile sync
+  config/
+    bot.json         ← Bot configuration (name, avatar, personality, API settings)
+    configLoader.js  ← Config file parser and cache
+    validation.js    ← Environment var validation
 
 docs/
   sessions/          ← Session notes (auto-tracked)
@@ -97,4 +102,43 @@ docs/
 
 discordllmbot.log    ← Live log file (recreated on startup)
 ```
+
+## Configuration (src/config/bot.json)
+
+**Bot Profile:**
+```json
+{
+  "bot": {
+    "name": "Orbit",
+    "avatarUrl": null,
+    "description": "...",
+    "speakingStyle": [...],
+    "globalRules": [...]
+  },
+  "memory": {
+    "maxMessages": 12
+  },
+  "api": {
+    "geminiModel": "gemini-pro",
+    "retryAttempts": 3,
+    "retryBackoffMs": 1000
+  }
+}
+```
+
+**When modifying config.json:**
+- `name`: Discord username (auto-synced on bot startup, respects Discord rate limits)
+- `avatarUrl`: Discord avatar URL (auto-synced on startup, or null to skip)
+- `description`: Used in LLM prompt (not sent to Discord)
+- `speakingStyle`: Array of personality traits for LLM
+- `globalRules`: LLM behavior constraints
+- `maxMessages`: Context window size per channel (affects memory/context.js)
+- `retryAttempts`: Number of retries for Gemini API failures
+- `retryBackoffMs`: Base milliseconds for exponential backoff
+
+**Config update mechanism:**
+- Config is loaded once at startup via `configLoader.js`
+- Cached for performance (restarting bot reloads config)
+- Discord profile updates happen in `clientReady` event via `profileUpdater.js`
+- Rate limit handling: Graceful warnings if Discord API rate limits occur
 
