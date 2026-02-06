@@ -1,18 +1,31 @@
 import 'dotenv/config'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import { Client, GatewayIntentBits, Partials } from 'discord.js'
 
-import { generateReply } from './llm/gemini.js'
-import { getRelationship } from './personality/relationships.js'
-import { addMessage, getContext } from './memory/context.js'
-import { buildPrompt } from './utils/prompt.js'
 import { validateEnvironment } from './config/validation.js'
 import { logger, initializeLogger } from './utils/logger.js'
-import { saveRelationships } from './storage/persistence.js'
 import { getBotConfig } from './config/configLoader.js'
-import { updateDiscordProfile } from './utils/profileUpdater.js'
 
-// Initialize logging to file (truncates log file on startup)
-initializeLogger()
+// Event handlers
+import { handleClientReady, handleMessageCreate, handleGuildCreate, handleGuildMemberAdd } from './events/index.js'
+
+// Read config early to supply logger settings before initializing logger
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const BOT_CONFIG_PATH = path.join(process.cwd(), 'src', 'config', 'bot.json')
+let initialMaxLogLines = undefined
+try {
+    if (fs.existsSync(BOT_CONFIG_PATH)) {
+        const cfg = JSON.parse(fs.readFileSync(BOT_CONFIG_PATH, 'utf-8'))
+        initialMaxLogLines = cfg?.logger?.maxLogLines
+    }
+} catch (e) {
+    // ignore parsing errors here; config loader will validate later
+}
+
+// Initialize logging to file (truncate to configured max lines on startup)
+initializeLogger(initialMaxLogLines)
 
 // Load config early for use throughout app
 let botConfig
@@ -27,7 +40,8 @@ const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildMembers
     ],
     partials: [Partials.Channel]
 })
@@ -40,86 +54,11 @@ try {
     process.exit(1)
 }
 
-client.once('clientReady', async () => {
-    logger.info(`✓ Logged in as ${client.user.tag}`)
-    
-    // Update Discord profile if config differs from current state
-    await updateDiscordProfile(client, botConfig)
-    
-    const guildCount = client.guilds.cache.size
-    if (guildCount === 0) {
-        logger.warn(`⚠️  Bot is not in any servers. Generate an invite link to add it.`)
-        logger.info(`Invite URL: https://discord.com/oauth2/authorize?client_id=${client.user.id}&scope=bot&permissions=0`)
-    } else {
-        logger.info(`✓ Connected to ${guildCount} server${guildCount > 1 ? 's' : ''}`)
-    }
-})
-
-client.on('messageCreate', async (message) => {
-    if (message.author.bot) return
-    if (!message.guild) return
-
-    addMessage(
-        message.channel.id,
-        message.author.username,
-        message.content
-    )
-
-    if (!message.mentions.has(client.user)) return
-
-    // Strip bot mention tag from message for cleaner logging
-    const cleanMessage = message.content.replace(/<@!?\d+>/g, '').trim()
-
-    // Log that bot was mentioned
-    logger.message(`@mention from ${message.author.username} in #${message.channel.name}: "${cleanMessage}"`)
-
-    const relationship = getRelationship(
-        message.guild.id,
-        message.author.id
-    )
-
-    // remove the triggering message from context
-    const context = getContext(message.channel.id).slice(0, -1)
-
-    const prompt = buildPrompt({
-        relationship,
-        context,
-        userMessage: message.content,
-        username: message.author.username
-    })
-
-    try {
-        // Show typing indicator while generating reply
-        await message.channel.sendTyping()
-
-        // Simulate human response time
-        await new Promise(r => setTimeout(r, Math.random() * 2000))
-
-        const reply = await generateReply(prompt)
-        
-        if (reply) {
-            // Validate message length (Discord limit: 2000 chars)
-            if (reply.length > 2000) {
-                const truncated = reply.substring(0, 1997) + '...'
-                logger.warn(`Reply truncated from ${reply.length} to 2000 chars`)
-                await message.reply(truncated)
-                const truncatedPreview = truncated.substring(0, 80).replace(/\n/g, ' ')
-                logger.api(`→ Discord API: message.reply() (truncated) "${truncatedPreview}"`)
-            } else {
-                await message.reply(reply)
-                const replyPreview = reply.substring(0, 80).replace(/\n/g, ' ')
-                logger.api(`→ Discord API: message.reply() "${replyPreview}"`)
-            }
-            
-            // Log successful reply
-            const replyPreview = reply.substring(0, 80).replace(/\n/g, ' ')
-            logger.message(`✓ Replied to ${message.author.username}: "${replyPreview}"`)
-        }
-    } catch (err) {
-        // Log error for debugging, but don't reply to user
-        logger.error(`Failed to generate reply for ${message.author.username}`, err)
-    }
-})
+// Register event handlers
+client.once('clientReady', () => handleClientReady(client, botConfig))
+client.on('messageCreate', (message) => handleMessageCreate(message, client))
+client.on('guildCreate', handleGuildCreate)
+client.on('guildMemberAdd', handleGuildMemberAdd)
 
 // Graceful shutdown: Save state before exit
 process.on('SIGINT', async () => {
@@ -145,4 +84,3 @@ process.on('SIGTERM', async () => {
 })
 
 client.login(process.env.DISCORD_TOKEN)
-

@@ -52,3 +52,12 @@ export function getApiConfig() {
     const config = loadConfig()
     return config.api
 }
+
+/**
+ * Get reply behavior settings
+ * @returns {Object} Reply behavior configuration
+ */
+export function getReplyBehavior() {
+    const config = loadConfig()
+    return config.replyBehavior ?? {}
+}

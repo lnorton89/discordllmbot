@@ -1,25 +1,40 @@
 import { saveContext, loadContexts } from '../storage/persistence.js'
 import { getMemoryConfig } from '../config/configLoader.js'
 
-const memory = loadContexts()
-const { maxMessages } = getMemoryConfig()
+// In-memory cache of contexts per guild: { guildId: { channelId: [...messages] } }
+const guildContexts = {}
 
-export function addMessage(channelId, author, content) {
-    memory[channelId] ??= []
+export function addMessage(guildId, guildName, channelId, channelName, authorId, authorName, content) {
+    guildContexts[guildId] ??= {}
+    guildContexts[guildId][channelId] ??= []
 
-    memory[channelId].push({
-        author,
+    const { maxMessages } = getMemoryConfig()
+
+    guildContexts[guildId][channelId].push({
+        authorId,
+        author: authorName,
         content
     })
 
-    if (memory[channelId].length > maxMessages) {
-        memory[channelId].shift()
+    if (guildContexts[guildId][channelId].length > maxMessages) {
+        guildContexts[guildId][channelId].shift()
     }
 
-    // Persist this channel's context
-    saveContext(channelId, memory[channelId])
+    // Persist this channel's context in the guild folder with readable channel name
+    saveContext(guildId, guildName, channelId, channelName, guildContexts[guildId][channelId])
 }
 
-export function getContext(channelId) {
-    return memory[channelId] ?? []
+export function getContext(guildId, channelId) {
+    return guildContexts[guildId]?.[channelId] ?? []
+}
+
+/**
+ * Load all contexts for a guild from disk
+ * @param {string} guildId - Discord guild ID
+ * @param {string} guildName - Discord guild name
+ */
+export function loadGuildContexts(guildId, guildName) {
+    const contexts = loadContexts(guildId, guildName)
+    guildContexts[guildId] = contexts
+    return contexts
 }

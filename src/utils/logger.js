@@ -18,6 +18,8 @@ const LOG_LEVELS = {
     error: 'ERROR'
 }
 
+let MAX_LOG_LINES = 1000
+
 function timestamp() {
     const now = new Date()
     return now.toISOString()
@@ -26,10 +28,6 @@ function timestamp() {
 function format(level, message, data = null) {
     const time = timestamp()
     const prefix = `[${time}] [${level}]`
-    
-    if (data) {
-        return `${prefix} ${message}`, data
-    }
     return `${prefix} ${message}`
 }
 
@@ -47,7 +45,7 @@ export const logger = {
         const formatted = format(LOG_LEVELS.api, message)
         if (data) {
             console.log(formatted, data)
-            writeToFile(formatted)
+            writeToFile(formatted + ' ' + JSON.stringify(data))
         } else {
             console.log(formatted)
             writeToFile(formatted)
@@ -58,7 +56,7 @@ export const logger = {
         const formatted = format(LOG_LEVELS.message, message)
         if (data) {
             console.log(formatted, data)
-            writeToFile(formatted)
+            writeToFile(formatted + ' ' + JSON.stringify(data))
         } else {
             console.log(formatted)
             writeToFile(formatted)
@@ -69,7 +67,7 @@ export const logger = {
         const formatted = format(LOG_LEVELS.info, message)
         if (data) {
             console.log(formatted, data)
-            writeToFile(formatted)
+            writeToFile(formatted + ' ' + JSON.stringify(data))
         } else {
             console.log(formatted)
             writeToFile(formatted)
@@ -80,7 +78,7 @@ export const logger = {
         const formatted = format(LOG_LEVELS.warn, message)
         if (data) {
             console.warn(formatted, data)
-            writeToFile(formatted)
+            writeToFile(formatted + ' ' + JSON.stringify(data))
         } else {
             console.warn(formatted)
             writeToFile(formatted)
@@ -91,9 +89,9 @@ export const logger = {
         const formatted = format(LOG_LEVELS.error, message)
         if (error) {
             console.error(formatted, error)
-            writeToFile(formatted)
+            writeToFile(formatted + ' ' + (error && error.stack ? error.stack : JSON.stringify(error)))
             if (error.stack) {
-                writeToFile(error.stack)
+                // already written above
             }
         } else {
             console.error(formatted)
@@ -106,10 +104,29 @@ export const logger = {
  * Initialize logger - truncates/creates log file
  * Call this at app startup
  */
-export function initializeLogger() {
+export function initializeLogger(maxLines) {
+    if (typeof maxLines === 'number' && maxLines > 0) {
+        MAX_LOG_LINES = Math.floor(maxLines)
+    }
+
     try {
-        // Create fresh log file on startup
-        fs.writeFileSync(LOG_FILE, '', 'utf-8')
+        // Truncate log file to the last MAX_LOG_LINES lines instead of wiping
+        if (fs.existsSync(LOG_FILE)) {
+            try {
+                const content = fs.readFileSync(LOG_FILE, 'utf-8')
+                const lines = content.split(/\r?\n/)
+                const start = Math.max(0, lines.length - MAX_LOG_LINES)
+                const truncated = lines.slice(start).join('\n')
+                fs.writeFileSync(LOG_FILE, truncated + (truncated.endsWith('\n') ? '' : '\n'), 'utf-8')
+            } catch (e) {
+                // If truncation fails, fall back to creating/overwriting the file
+                try { fs.writeFileSync(LOG_FILE, '', 'utf-8') } catch (_) {}
+            }
+        } else {
+            // Create empty log file
+            fs.writeFileSync(LOG_FILE, '', 'utf-8')
+        }
+
         logger.info('Logger initialized')
     } catch (err) {
         console.error('Failed to initialize log file:', err)
