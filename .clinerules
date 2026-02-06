@@ -141,4 +141,5 @@ discordllmbot.log                   ← Live log file (recreated on startup)
 - `ignoreUsers`, `ignoreChannels`, `ignoreKeywords`: (`array<string>`) — Lists for blacklisting replies.
 - `requireMention`: (`boolean`) — Forces mention requirement.
 - `engagementMode`: (`"passive"`, `"natural"`, `"aggressive"`) — Descriptive, primarily for future expanded strategies.
+- `proactiveReplyChance`: (`0.0` - `1.0`) — Random chance to reply proactively (in `"active"` mode).
 

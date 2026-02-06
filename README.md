@@ -91,7 +91,7 @@ Important fields:
   - `ignoreChannels`: (`array<string>`) — A list of Discord channel IDs where the bot should remain silent.
   - `ignoreKeywords`: (`array<string>`) — A list of keywords or phrases (case-insensitive) that, if present in a message, will prevent the bot from replying.
   - `requireMention`: (`boolean`) — If `true`, the bot *must* be @mentioned to consider replying, even if `mode` is set to `"active"`.
-  - `engagementMode`: (`"passive"`, `"natural"`, `"aggressive"`) — (Currently for informational/future use, actual behavior primarily controlled by `mode`). Describes the bot's general level of conversational engagement.
+  - `proactiveReplyChance`: (`0.0` - `1.0`) — (Only applies in `"active"` mode) The random chance the bot will proactively reply to a message even if no explicit mention or question is present. A value of `0.05` means a 5% chance.
 
 - `logger.maxLogLines`: integer, how many lines to keep from previous log when starting
 

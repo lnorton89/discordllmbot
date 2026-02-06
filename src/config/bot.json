@@ -32,15 +32,16 @@
   }
   ,
   "replyBehavior": {
-    "mode": "mention-only",
+    "mode": "active",
     "replyProbability": 1.0,
     "minDelayMs": 500,
     "maxDelayMs": 3000,
     "ignoreUsers": [],
     "ignoreChannels": [],
     "ignoreKeywords": [],
-    "requireMention": true,
-    "engagementMode": "passive"
+    "requireMention": false,
+    "engagementMode": "passive",
+    "proactiveReplyChance": 0.05
   }
   ,
   "logger": {

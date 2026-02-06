@@ -35,5 +35,9 @@ export function ActiveStrategy({ message, isMentioned, replyBehavior, context = 
     const text = (message.content || '').trim()
     if (text.endsWith('?')) return true
 
+    // Proactive reply chance for 'active' mode
+    const proactiveChance = replyBehavior.proactiveReplyChance ?? 0
+    if (proactiveChance > 0 && Math.random() < proactiveChance) return true
+
     return false
 }
