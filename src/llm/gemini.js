@@ -1,7 +1,13 @@
 import { logger } from '../utils/logger.js'
+import { getApiConfig } from '../config/configLoader.js'
 
-const GEMINI_URL =
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
+/**
+ * Get Gemini API URL for the configured model
+ */
+function getGeminiUrl() {
+    const { geminiModel } = getApiConfig()
+    return `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`
+}
 
 /**
  * Custom error class for Gemini API errors
@@ -62,8 +68,9 @@ async function retry(fn, maxRetries = 3) {
  */
 export async function generateReply(prompt) {
     return retry(async () => {
+        const url = getGeminiUrl()
         const res = await fetch(
-            `${GEMINI_URL}?key=${process.env.GEMINI_API_KEY}`,
+            `${url}?key=${process.env.GEMINI_API_KEY}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
