@@ -1,0 +1,75 @@
+# Claude Development Rules for DiscordLLMBot
+
+## Session Tracking (AUTOMATED)
+
+**START OF SESSION:**
+- Check if `docs/sessions/YYYY-MM-DD.md` exists for today
+- If not, create it with current date using format in `docs/sessions/2026-02-06.md`
+- Add current objectives based on user's request
+- Log this in `WORKLOG.md` under current session
+
+**DURING SESSION:**
+- Track all code changes in the session file under "Changes Made" table
+- Note important decisions under "Decisions Made"
+- Document any technical discoveries under "Technical Notes"
+- Keep file up-to-date as work progresses
+
+**END OF SESSION / WHEN CONTEXT SWITCHES:**
+- Update `WORKLOG.md`:
+  - Move session from "Current Session" to "Recent Sessions" table
+  - Update task checkboxes in "Active Tasks"
+  - Add session to the history table with date, focus, and git commits
+- Create git commits for all changes using conventional format:
+  ```
+  <type>(<scope>): <subject>
+  
+  See docs/sessions/2026-02-06.md for session notes
+  ```
+  - Types: `feat`, `fix`, `docs`, `refactor`, `chore`
+  - Scope: affected module (memory, llm, personality, utils, etc.)
+  - Example: `feat(memory): add relationships.json persistence`
+  
+- Commit the session file itself:
+  ```
+  chore: session notes 2026-02-06
+  ```
+
+## Architecture Decisions
+
+**WHEN ARCHITECTURAL CHANGES OCCUR:**
+- Create `docs/adr/NNN-kebab-case-title.md` (increment NNN)
+- Use ADR template in `docs/adr/001-template.md`
+- Reference ADR in git commit message: `feat: implement xyz (ADR-NNN)`
+- Link to related ADRs in "References" section
+
+## Code Style Reminders
+- Nullish coalescing: `??` (not `||`)
+- Named exports, verb-first functions
+- Error fallback: "brain lag, one sec"
+- Parentheses in lists: `- behavior`, not `- > behavior`
+
+## Critical Patterns NOT to Break
+1. **In-memory state** keyed by Discord IDs (guilds, channels, users)
+2. **Prompt engineering** as primary behavior control
+3. **Message filtering** order: bot check → guild check → mention check
+4. **Context slice**: Remove triggering message with `.slice(0, -1)` to prevent echo
+
+## When Adding Features
+1. Ask: Where does this fit? (memory/llm/personality/utils)
+2. Check: Does this affect the prompt? (Modify `prompt.js`)
+3. Check: Is this user-specific? (Use `relationships.js`)
+4. Document: Add to `WORKLOG.md` and this session file
+
+## File Organization
+```
+src/
+  index.js           ← Discord event loop
+  llm/gemini.js      ← External API calls
+  memory/context.js  ← Channel-specific history
+  personality/       ← Bot identity & user config
+  utils/prompt.js    ← Behavior orchestration
+
+docs/
+  sessions/          ← Session notes (auto-tracked)
+  adr/               ← Architecture decisions
+```
