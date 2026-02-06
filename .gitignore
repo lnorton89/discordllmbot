@@ -35,6 +35,7 @@ Thumbs.db
 *.json
 !package.json
 !.clinerules
+!src/config/bot.json
 
 # Misc
 .cache/
