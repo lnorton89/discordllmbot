@@ -11,6 +11,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const LOG_FILE = path.join(__dirname, '../../discordllmbot.log')
 
 const LOG_LEVELS = {
+    message: 'MESSAGE',
     info: 'INFO',
     warn: 'WARN',
     error: 'ERROR'
@@ -41,6 +42,17 @@ function writeToFile(message) {
 }
 
 export const logger = {
+    message(message, data = null) {
+        const formatted = format(LOG_LEVELS.message, message)
+        if (data) {
+            console.log(formatted, data)
+            writeToFile(formatted)
+        } else {
+            console.log(formatted)
+            writeToFile(formatted)
+        }
+    },
+
     info(message, data = null) {
         const formatted = format(LOG_LEVELS.info, message)
         if (data) {

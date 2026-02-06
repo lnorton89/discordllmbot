@@ -67,8 +67,11 @@ client.on('messageCreate', async (message) => {
 
     if (!message.mentions.has(client.user)) return
 
+    // Strip bot mention tag from message for cleaner logging
+    const cleanMessage = message.content.replace(/<@!?\d+>/g, '').trim()
+
     // Log that bot was mentioned
-    logger.info(`@mention from ${message.author.username} in #${message.channel.name}: "${message.content.substring(0, 100)}"`)
+    logger.message(`@mention from ${message.author.username} in #${message.channel.name}: "${cleanMessage}"`)
 
     const relationship = getRelationship(
         message.guild.id,
@@ -105,7 +108,8 @@ client.on('messageCreate', async (message) => {
             }
             
             // Log successful reply
-            logger.info(`✓ Replied to ${message.author.username}: "${reply.substring(0, 80)}"`)
+            const replyPreview = reply.substring(0, 80).replace(/\n/g, ' ')
+            logger.message(`✓ Replied to ${message.author.username}: "${replyPreview}"`)
         }
     } catch (err) {
         // Log error for debugging, but don't reply to user
