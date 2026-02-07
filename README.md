@@ -7,13 +7,14 @@ DiscordLLMBot is a lightweight Discord bot that uses Google's Gemini (Generative
 **Repository layout**
 
 - `bot/` — Discord bot application
-  - `index.js` — main entry point and event loop
-  - `llm/` — Gemini API integration
-  - `memory/` — conversation context management
-  - `personality/` — persona and relationships handling
-  - `core/` — business logic (prompt building, reply decision)
-  - `events/` — Discord event handlers
-  - `utils/` — helper utilities
+  - `src/` — application source
+    - `index.js` — main entry point and event loop
+    - `llm/` — Gemini API integration
+    - `memory/` — conversation context management
+    - `personality/` — persona and relationships handling
+    - `core/` — business logic (prompt building, reply decision)
+    - `events/` — Discord event handlers
+    - `utils/` — helper utilities
 - `api/` — Express.js API for the dashboard
 - `app/` — Vite + React frontend dashboard
 - `shared/` — common logic used by bot and api
@@ -156,10 +157,10 @@ Suggested next steps you can implement:
 
 ## Files to inspect when debugging
 
-- [bot/index.js](bot/index.js)
-- [bot/events/](bot/events/) — event handlers
-- [bot/core/](bot/core/) — business logic
-- [bot/llm/gemini.js](bot/llm/gemini.js)
+- [bot/src/index.js](bot/src/index.js)
+- [bot/src/events/](bot/src/events/) — event handlers
+- [bot/src/core/](bot/src/core/) — business logic
+- [bot/src/llm/gemini.js](bot/src/llm/gemini.js)
 - [shared/utils/logger.js](shared/utils/logger.js)
-- [bot/personality/relationships.js](bot/personality/relationships.js)
+- [bot/src/personality/relationships.js](bot/src/personality/relationships.js)
 - [shared/config/bot.json](shared/config/bot.json)
