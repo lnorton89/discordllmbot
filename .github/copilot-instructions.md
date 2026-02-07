@@ -11,14 +11,16 @@ This is a Discord bot that generates contextual replies using Google's Gemini AP
 
 ## Module Responsibilities
 
-- **`index.js`** (entry point): Listens to Discord events, orchestrates the pipeline
-- **`llm/gemini.js`**: Single function `generateReply(prompt)` - HTTP calls to Gemini API
-- **`storage/database.js`**: Manages PostgreSQL connection and schema setup.
-- **`storage/persistence.js`**: Provides a data access layer for all database interactions (CRUD operations).
-- **`storage/lock.js`**: A locking mechanism to prevent race conditions during schema setup.
-- **`personality/botPersona.js`**: Centralized bot identity exported as `botPersona` object
-- **`personality/relationships.js`**: Per-guild, per-user behavior customization (exported as keyed object `relationships[guildId][userId]`)
-- **`utils/prompt.js`**: Builds the final prompt string from all components
+- **`bot/index.js`** (entry point): Listens to Discord events, orchestrates the pipeline
+- **`bot/llm/gemini.js`**: Single function `generateReply(prompt)` - HTTP calls to Gemini API
+- **`api/index.js`**: Express.js API for the dashboard
+- **`app/`**: Vite + React frontend dashboard
+- **`shared/storage/database.js`**: Manages PostgreSQL connection and schema setup.
+- **`shared/storage/persistence.js`**: Provides a data access layer for all database interactions (CRUD operations).
+- **`shared/storage/lock.js`**: A locking mechanism to prevent race conditions during schema setup.
+- **`bot/personality/botPersona.js`**: Centralized bot identity exported as `botPersona` object
+- **`bot/personality/relationships.js`**: Per-guild, per-user behavior customization (exported as keyed object `relationships[guildId][userId]`)
+- **`bot/core/prompt.js`**: Builds the final prompt string from all components
 
 ## Critical Patterns
 

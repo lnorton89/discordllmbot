@@ -6,68 +6,50 @@ DiscordLLMBot is a lightweight Discord bot that uses Google's Gemini (Generative
 
 **Repository layout**
 
-- `src/` — application source
-  - `index.js` — main entry point and event loop (thin: just setup + event registration)
-  - `llm/gemini.js` — Gemini REST client with retry/backoff
-  - `storage/` — PostgreSQL database interaction
-    - `database.js` — connection and schema setup
-    - `persistence.js` — data access layer (CRUD operations)
-    - `lock.js` — schema setup locking mechanism
+- `bot/` — Discord bot application
+  - `index.js` — main entry point and event loop
+  - `llm/` — Gemini API integration
+  - `memory/` — conversation context management
   - `personality/` — persona and relationships handling
-    - `botPersona.js` — loads bot identity and speaking style
-    - `relationships.js` — per-guild, per-user relationship store and initialization
-  - `core/` — business logic (moved from utils/)
-    - `prompt.js` — builds prompts for Gemini from persona, relationship, and context
-    - `replyDecider.js` — decision logic (Phase A/B) for when to reply
-    - `responseDelay.js` — human-like delay calculation
-  - `events/` — event handlers (moved from index.js)
-    - `clientReady.js` — bot ready event handler
-    - `messageCreate.js` — message handling and reply logic
-    - `guildCreate.js` — guild join event handler
-    - `guildMemberAdd.js` — member join event handler
-    - `index.js` — event loader
-  - `utils/` — helper utilities (logger, profileUpdater, sanitizeName only)
-    - `logger.js` — structured logger (file + console)
-    - `profileUpdater.js` — sync Discord profile (username/avatar) with config
-    - `sanitizeName.js` — sanitize names for Windows-safe filenames
-  - `config/` — configuration
-    - `bot.json` — main config (persona, memory, api, replyBehavior, logger)
-    - `pgadmin/` — pgAdmin configuration
-      - `servers.json` — server definitions for pgAdmin
+  - `core/` — business logic (prompt building, reply decision)
+  - `events/` — Discord event handlers
+  - `utils/` — helper utilities
+- `api/` — Express.js API for the dashboard
+- `app/` — Vite + React frontend dashboard
+- `shared/` — common logic used by bot and api
+  - `storage/` — database interaction
+  - `config/` — configuration loading and validation
+  - `utils/` — shared utilities (logger)
 - `docs/` — Documentation
   - `src/` — VitePress source files
-  - `package.json` — Documentation dependencies and scripts
 - `data/` — runtime persisted data (mounted Docker volumes)
   - `postgres/` — PostgreSQL database files
   - `pgadmin/` — pgAdmin 4 data
 - `scripts/` — helper scripts
-  - `watch-restart.js` — dev watcher that restarts the bot on `src/` changes and writes restart markers to the log
-- `discordllmbot.log` — runtime log file (rotated/truncated on startup)
+- `discordllmbot.log` — runtime log file
 - `package.json` — npm scripts and metadata
 
 ---
 
 ## Features & Design
 
-- Persona-driven prompts: the bot persona is defined in `src/config/bot.json` and injected into every prompt. Customize `name`, `description`, `speakingStyle`, and `globalRules` to control how the bot behaves.
+- Persona-driven prompts: the bot persona is defined in `shared/config/bot.json` and injected into every prompt. Customize `name`, `description`, `speakingStyle`, and `globalRules` to control how the bot behaves.
 
-- Per-user relationships: when the bot joins a guild it initializes `data/relationships.json` entries for each human member using `bot.defaultRelationship` from `bot.json`. Each relationship stores `username`, `displayName`, `attitude`, `behavior`, and `boundaries`. These entries are included (compactly) in prompts so the LLM can tailor replies.
+- Per-user relationships: when the bot joins a guild it initializes database entries for each human member using `bot.defaultRelationship` from `bot.json`. Each relationship stores `username`, `displayName`, `attitude`, `behavior`, and `boundaries`. These entries are included (compactly) in prompts so the LLM can tailor replies.
 
-- Contextual memory: recent channel messages (authorId, author name, content) are kept in memory (bounded by `memory.maxMessages`) and persisted per-channel in `data/contexts/`.
+- Contextual memory: recent channel messages (authorId, author name, content) are stored in the PostgreSQL database (bounded by `memory.maxMessages`).
 
 - Reply decision logic: Phase A/B implemented
   - `replyBehavior` in `bot.json` controls how the bot decides whether to reply (modes: `mention-only`, `active`, `passive`, `disabled`), `replyProbability`, delay window, ignore lists, and keywords.
-  - Strategy pattern (`src/strategies/replyStrategies.js`) provides `MentionOnly`, `Passive`, `Active`, and `Disabled` strategies. `ActiveStrategy` looks at recent context and simple heuristics.
+  - Strategy pattern (`bot/strategies/replyStrategies.js`) provides `MentionOnly`, `Passive`, `Active`, and `Disabled` strategies.
 
-- Gemini client: `src/llm/gemini.js` sends prompts to Gemini REST API with configurable `api.geminiModel`, `api.retryAttempts`, and `api.retryBackoffMs`. The client honors `Retry-After` headers for rate-limited responses.
+- Gemini client: `bot/llm/gemini.js` sends prompts to Gemini REST API with configurable `api.geminiModel`, `api.retryAttempts`, and `api.retryBackoffMs`.
 
-- Structured logging: `src/utils/logger.js` writes multi-level logs to both console and `discordllmbot.log`. The log file is truncated to the last `logger.maxLogLines` on startup (configurable in `bot.json`). Specialized log levels: `API`, `MESSAGE`, `INFO`, `WARN`, `ERROR`.
-
-- Dev watcher: `scripts/watch-restart.js` restarts the bot on changes in `src/` and appends restart markers to the log so you can inspect where a restart occurred.
+- Structured logging: `shared/utils/logger.js` writes multi-level logs to both console and `discordllmbot.log`. Specialized log levels: `API`, `MESSAGE`, `INFO`, `WARN`, `ERROR`.
 
 ---
 
-## Configuration (`src/config/bot.json`)
+## Configuration (`shared/config/bot.json`)
 
 Important fields:
 
@@ -100,7 +82,7 @@ Important fields:
 
 - `logger.maxLogLines`: integer, how many lines to keep from previous log when starting
 
-See [src/config/bot.json](src/config/bot.json) for defaults.
+See [shared/config/bot.json](shared/config/bot.json) for defaults.
 
 ---
 
@@ -118,6 +100,8 @@ The bot requires the following environment variables (use a `.env` file in devel
 - `POSTGRES_PORT` - The port for the database.
 - `PGADMIN_DEFAULT_EMAIL` - The email for the pgAdmin user.
 - `PGADMIN_DEFAULT_PASSWORD` - The password for the pgAdmin user.
+- `API_PORT` - The port for the Express API server.
+- `DASHBOARD_PORT` - The port for the web dashboard.
 
 ---
 
@@ -129,23 +113,21 @@ Install dependencies and run:
 docker-compose up --build
 ```
 
-During development, the `server` service is configured with a mounted volume and `nodemon` for automatic restarts on code changes.
+During development, the `bot` service is configured with a mounted volume and `nodemon` for automatic restarts on code changes.
 
-Data storage: When the bot starts or joins a server, it automatically creates a per-guild folder (`data/<Server Name>/`) and populates:
-- `relationships.json` — per-user relationship entries for the guild
-- `contexts/<channelId>.json` — per-channel message history files
+Data storage: When the bot starts or joins a server, it automatically creates database entries for the guild and its members.
 
-Log file: `discordllmbot.log` — the watcher writes restart markers and the logger truncates the file on startup to keep the last `logger.maxLogLines` (configurable in `bot.json`).
+Log file: `discordllmbot.log` — the logger truncates the file on startup to keep the last `logger.maxLogLines` (configurable in `bot.json`).
 
 ---
 
 ## Key Implementation Notes
 
-- Relationship persistence: `src/personality/relationships.js` maintains in-memory caches per guild (`guildRelationships[guildId]`) and saves to `data/<Guild Name>/relationships.json` using the persistence layer. Relationships include per-user `username`, `displayName`, `attitude`, `behavior`, and `boundaries`.
+- Relationship persistence: `bot/personality/relationships.js` maintains in-memory caches per guild (`guildRelationships[guildId]`) and saves to the PostgreSQL database using the persistence layer. Relationships include per-user `username`, `displayName`, `attitude`, `behavior`, and `boundaries`.
 
-- Conversation context: `src/memory/context.js` maintains per-channel message history in memory (`guildContexts[guildId][channelId]`) and persists to `data/<Guild Name>/contexts/<channelName>.json` (human-readable filenames).
+- Conversation context: `bot/memory/context.js` maintains per-channel message history in memory (`guildContexts[guildId][channelId]`) and persists to the database.
 
-- Event handling: `src/events/` contains all Discord event handlers separated from main application logic for better modularity.
+- Event handling: `bot/events/` contains all Discord event handlers separated from main application logic for better modularity.
 
 - Member enumeration: the bot requests the `Guild Members` intent and will attempt to `guild.members.fetch()` on startup/guild join to populate per-user relationship entries. If fetch fails (or is disabled) it falls back to cached members.
 
@@ -157,8 +139,8 @@ Log file: `discordllmbot.log` — the watcher writes restart markers and the log
 
 Suggested next steps you can implement:
 
-- Admin commands: add Discord commands for admins to inspect and edit `relationships.json` entries in-chat (eg. `!rel set <userId> <json>`).
-- Per-guild override UI: add a simple web dashboard or CLI to manage `replyBehavior` and `defaultRelationship` per-guild.
+- Web Dashboard: Use the provided `app` and `api` services to manage the bot via a web interface.
+- Admin commands: add Discord commands for admins to inspect and edit relationships in-chat (eg. `!rel set <userId> <json>`).
 - More advanced reply strategies: add context-aware scoring, conversation topic detection, and rate-limiting heuristics.
 - Tests: add unit tests for `replyDecider`, `responseDelay`, and `prompt` to validate behavior.
 
@@ -174,10 +156,10 @@ Suggested next steps you can implement:
 
 ## Files to inspect when debugging
 
-- [src/index.js](src/index.js)
-- [src/events/](src/events/) — event handlers
-- [src/core/](src/core/) — business logic
-- [src/llm/gemini.js](src/llm/gemini.js)
-- [src/utils/logger.js](src/utils/logger.js)
-- [src/personality/relationships.js](src/personality/relationships.js)
-- [src/config/bot.json](src/config/bot.json)
+- [bot/index.js](bot/index.js)
+- [bot/events/](bot/events/) — event handlers
+- [bot/core/](bot/core/) — business logic
+- [bot/llm/gemini.js](bot/llm/gemini.js)
+- [shared/utils/logger.js](shared/utils/logger.js)
+- [bot/personality/relationships.js](bot/personality/relationships.js)
+- [shared/config/bot.json](shared/config/bot.json)

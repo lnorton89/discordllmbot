@@ -15,11 +15,11 @@ services:
       timeout: 5s
       retries: 5
 
-  server:
-    container_name: discordllmbot-server
+  bot:
+    container_name: discordllmbot-bot
     build: .
     volumes:
-      - ./src:/usr/src/app/src
+      - ./bot:/usr/src/app/bot
       - ./shared:/usr/src/app/shared
     command: npm run dev:container
     depends_on:

@@ -2,18 +2,18 @@
   "name": "discordllmbot",
   "version": "1.0.0",
   "type": "module",
-  "main": "src/index.js",
+  "main": "bot/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/lnorton89/discordllmbot.git"
   },
   "scripts": {
-    "start": "node src/index.js",
-    "docs": "npm --prefix ./docs run dev",
-    "dev": "docker-compose up -d server api db pgadmin dashboard",
-    "dev:container": "nodemon src/index.js",
+    "build": "docker-compose build",
+    "dev": "docker-compose up -d bot api db pgadmin dashboard",
+    "dev:container": "nodemon bot/index.js",
     "dev:down": "docker-compose down",
-    "build": "docker-compose build"
+    "docs": "npm --prefix ./docs run dev",
+    "start": "node bot/index.js"
   },
   "engines": {
     "node": ">=20"

@@ -183,6 +183,7 @@ See **IMPROVEMENT_PLAN.md** for full architecture.
 - [commit hash] — feat: implement web dashboard foundation (API + Frontend scaffolding)
 - [commit hash] — feat: implement dashboard features (Settings, Relationships, Real-time Logs)
 - [commit hash] — refactor: move api and shared to top level and use mounted volumes
+- [commit hash] — refactor: rename src to bot and server service to bot
 
 ---
 
