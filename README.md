@@ -11,7 +11,7 @@ DiscordLLMBot is a lightweight Discord bot that uses Google's Gemini (Generative
   - `Dockerfile.bot` — Docker configuration for the bot
 - `api/` — Express.js API for the dashboard
   - `Dockerfile.api` — Docker configuration for the API
-- `app/` — Vite + React frontend dashboard
+- `dashboard/` — Vite + React frontend dashboard
   - `Dockerfile.dashboard` — Docker configuration for the dashboard
 - `shared/` — common logic used by bot and api
 - `docs/` — Documentation
@@ -131,7 +131,7 @@ Log file: `discordllmbot.log` — the logger truncates the file on startup to ke
 
 Suggested next steps you can implement:
 
-- Web Dashboard: Use the provided `app` and `api` services to manage the bot via a web interface.
+- Web Dashboard: Use the provided `dashboard` and `api` services to manage the bot via a web interface.
 - Admin commands: add Discord commands for admins to inspect and edit relationships in-chat (eg. `!rel set <userId> <json>`).
 - More advanced reply strategies: add context-aware scoring, conversation topic detection, and rate-limiting heuristics.
 - Tests: add unit tests for `replyDecider`, `responseDelay`, and `prompt` to validate behavior.

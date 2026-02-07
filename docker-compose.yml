@@ -45,7 +45,7 @@ services:
         condition: service_healthy
     volumes:
       - ./data/pgadmin:/var/lib/pgadmin
-      - ./config/pgadmin/servers.json:/tmp/servers.json
+      - ./shared/config/pgadmin/servers.json:/tmp/servers.json
 
   docs:
     container_name: discordllmbot-docs
@@ -78,9 +78,9 @@ services:
     container_name: discordllmbot-dashboard
     build:
       context: .
-      dockerfile: app/Dockerfile.dashboard
+      dockerfile: dashboard/Dockerfile.dashboard
     volumes:
-      - ./app:/usr/src/app
+      - ./dashboard:/usr/src/app
     ports:
       - "${DASHBOARD_PORT}:5173"
     depends_on:

@@ -14,13 +14,13 @@ This is a Discord bot that generates contextual replies using Google's Gemini AP
 - **`bot/src/index.js`** (entry point): Listens to Discord events, orchestrates the pipeline
 - **`bot/src/llm/gemini.js`**: Single function `generateReply(prompt)` - HTTP calls to Gemini API
 - **`api/index.js`**: Express.js API for the dashboard
-- **`app/`**: Vite + React frontend dashboard
+- **`dashboard/`**: Vite + React frontend dashboard
 - **`shared/storage/database.js`**: Manages PostgreSQL connection and schema setup.
 - **`shared/storage/persistence.js`**: Provides a data access layer for all database interactions (CRUD operations).
 - **`shared/storage/lock.js`**: A locking mechanism to prevent race conditions during schema setup.
 - **`bot/Dockerfile.bot`**: Docker configuration for the bot.
 - **`api/Dockerfile.api`**: Docker configuration for the API.
-- **`app/Dockerfile.dashboard`**: Docker configuration for the dashboard.
+- **`dashboard/Dockerfile.dashboard`**: Docker configuration for the dashboard.
 - **`docs/Dockerfile.docs`**: Docker configuration for the documentation server.
 
 ## Critical Patterns
