@@ -10,7 +10,7 @@
   "scripts": {
     "start": "node src/index.js",
     "docs": "npm --prefix ./docs run dev",
-    "dev": "docker-compose up app db pgadmin",
+    "dev": "docker-compose up -d app db pgadmin",
     "dev:container": "nodemon src/index.js",
     "dev:down": "docker-compose down",
     "build": "docker-compose build"

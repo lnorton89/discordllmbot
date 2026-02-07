@@ -35,11 +35,9 @@ Thumbs.db
 *.json
 !package.json
 !.clinerules
-!src/config/bot.json
 !src/config/bot.json.defaults
 !mcp-config.json
 !docs/package.json
-servers.json
 
 # Misc
 .cache/
