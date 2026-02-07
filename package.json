@@ -1,29 +1,13 @@
 {
-  "name": "discordllmbot",
+  "name": "discordllmbot-monorepo",
   "version": "1.0.0",
+  "description": "Monorepo for DiscordLLMBot, API, and Dashboard",
   "type": "module",
-  "main": "bot/src/index.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/lnorton89/discordllmbot.git"
-  },
   "scripts": {
-    "build": "docker-compose build",
     "dev": "docker-compose up -d bot api db pgadmin dashboard",
-    "dev:container": "nodemon bot/src/index.js",
     "dev:down": "docker-compose down",
+    "build": "docker-compose build",
     "docs": "npm --prefix ./docs run dev",
-    "start": "node bot/src/index.js"
-  },
-  "engines": {
-    "node": ">=20"
-  },
-  "dependencies": {
-    "discord.js": "^14.25.1",
-    "dotenv": "^17.2.4",
-    "pg": "^8.18.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.11"
+    "generate-docs": "npm --prefix ./docs run generate"
   }
 }
