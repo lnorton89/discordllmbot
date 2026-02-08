@@ -11,7 +11,7 @@ This is a Discord bot that generates contextual replies using Google's Gemini AP
 
 ## Module Responsibilities
 
-- **`bot/src/index.js`** (entry point): Listens to Discord events, orchestrates the pipeline
+- **`bot/src/index.js`** (entry point): Listens to Discord events, orchestrates the pipeline. Also exposes an internal API (port 3001) for management.
 - **`bot/src/llm/gemini.js`**: Single function `generateReply(prompt)` - HTTP calls to Gemini API
 - **`api/index.js`**: Express.js API for the dashboard
 - **`dashboard/`**: Vite + React frontend dashboard
@@ -26,14 +26,15 @@ This is a Discord bot that generates contextual replies using Google's Gemini AP
 ## Critical Patterns
 
 ### 1. Database-Driven State
-All state is persisted in a PostgreSQL database. The schema is defined in `src/storage/database.js` and includes tables for `relationships`, `relationship_behaviors`, `relationship_boundaries`, and `messages`.
+All state is persisted in a PostgreSQL database. The schema is defined in `shared/storage/database.js` and includes tables for `relationships`, `relationship_behaviors`, `relationship_boundaries`, and `messages`.
 
 **Implication:** Data is persistent across bot restarts.
 
+
 ### 2. Prompt Engineering as Core Logic
-The entire bot behavior is driven by the **prompt template** in `prompt.js`. Changing bot behavior means modifying:
-1. `botPersona` object (global traits)
-2. `relationship` config (per-user overrides)
+The entire bot behavior is driven by the **prompt template** in `bot/src/core/prompt.js`. Changing bot behavior means modifying:
+1. `botPersona` object (global traits, loaded from `shared/config/bot.json`)
+2. `relationship` config (per-user overrides, stored in DB)
 3. Prompt template structure itself
 
 **Convention:** Persona description and rules are lowercase, concise strings. Relationship attitudes match the tone set in botPersona.
@@ -73,24 +74,24 @@ docker-compose up --build
 ## Extending the Bot
 
 ### Adding New Behavior
-1. **Global personality trait?** → Modify `botPersona` in `personality/botPersona.js`
-2. **Per-user customization?** → Update relationship config via `setRelationship()` in `personality/relationships.js`
-3. **New API integration?** → Create new module in `llm/` (follow `gemini.js` pattern: export single named function)
+1. **Global personality trait?** → Modify `bot` section in `shared/config/bot.json`
+2. **Per-user customization?** → Update relationship config via `setRelationship()` in `bot/src/personality/relationships.js` (or via Dashboard)
+3. **New API integration?** → Create new module in `bot/src/llm/` (follow `gemini.js` pattern: export single named function)
 4. **New memory dimension?** → Add to context object or extend `relationships` structure
 
 ### Common Tasks
-- **Change bot name:** Update `botPersona.name` (also update Discord bot username for consistency)
-- **Adjust context window:** Change `MAX_MESSAGES` in `memory/context.js`
-- **Add LLM fallback:** Modify `generateReply()` error handling in `index.js`
+- **Change bot name:** Update `bot.name` in `shared/config/bot.json` (also update Discord bot username for consistency)
+- **Adjust context window:** Change `memory.maxMessages` in `shared/config/bot.json`
+- **Add LLM fallback:** Modify `generateReply()` error handling in `bot/src/index.js`
 - **Per-guild settings:** Extend relationship object or create `guilds.js` module (keyed by guildId)
 
 ## Code Style & Conventions
 
 - **Module exports:** Single default export or named exports, no mixing
 - **Function naming:** Verb-first (`getContext`, `buildPrompt`, `generateReply`)
-- **Nullish coalescing:** Use `??` for defaults (see `memory.js` and `relationships.js`)
+- **Nullish coalescing:** Use `??` for defaults (see `memory/context.js` and `personality/relationships.js`)
 - **Error handling:** Catch at `index.js` message handler, log to console, reply with fallback message
-- **No persistence:** All data in memory—consider adding `.json` file persistence if relationships need to survive restarts
+- **Persistence:** Use `shared/storage/persistence.js` for data access.
 
 ## Discord.js Integration Notes
 

@@ -1,6 +1,6 @@
 # DiscordLLMBot
 
-DiscordLLMBot is a lightweight Discord bot that uses Google's Gemini (Generative AI) REST API to generate contextual, persona-driven replies inside Discord servers. It is designed as a configurable MVP with a PostgreSQL database for persistence, and developer-friendly tooling (Docker-based development environment).
+DiscordLLMBot is a lightweight Discord bot that uses Google's Gemini (Generative AI) REST API to generate contextual, persona-driven replies inside Discord servers. It is designed as a configurable MVP with a PostgreSQL database for persistence, a web dashboard for management, and developer-friendly tooling (Docker-based development environment).
 
 ---
 
@@ -13,7 +13,7 @@ DiscordLLMBot is a lightweight Discord bot that uses Google's Gemini (Generative
   - `Dockerfile.api` — Docker configuration for the API
 - `dashboard/` — Vite + React frontend dashboard
   - `Dockerfile.dashboard` — Docker configuration for the dashboard
-- `shared/` — common logic used by bot and api
+- `shared/` — common logic and configuration used by bot and api
 - `docs/` — Documentation
   - `src/` — VitePress source files
   - `Dockerfile.docs` — Docker configuration for the documentation server
@@ -27,17 +27,21 @@ DiscordLLMBot is a lightweight Discord bot that uses Google's Gemini (Generative
 
 ## Features & Design
 
-- Persona-driven prompts: the bot persona is defined in `shared/config/bot.json` and injected into every prompt. Customize `name`, `description`, `speakingStyle`, and `globalRules` to control how the bot behaves.
+- **Persona-driven prompts**: the bot persona is defined in `shared/config/bot.json` and injected into every prompt. Customize `name`, `description`, `speakingStyle`, and `globalRules` to control how the bot behaves.
 
-- Per-user relationships: when the bot joins a guild it initializes database entries for each human member using `bot.defaultRelationship` from `bot.json`. Each relationship stores `username`, `displayName`, `attitude`, `behavior`, and `boundaries`. These entries are included (compactly) in prompts so the LLM can tailor replies.
+- **Per-user relationships**: when the bot joins a guild it initializes database entries for each human member using `bot.defaultRelationship` from `bot.json`. Each relationship stores `username`, `displayName`, `attitude`, `behavior`, and `boundaries`. These entries are included (compactly) in prompts so the LLM can tailor replies.
 
-- Contextual memory: recent channel messages (authorId, author name, content) are stored in the PostgreSQL database (bounded by `memory.maxMessages`).
+- **Contextual memory**: recent channel messages (authorId, author name, content) are stored in the PostgreSQL database (bounded by `memory.maxMessages`).
 
-- Reply decision logic: Phase A/B implemented
+- **Reply decision logic**: Phase A/B implemented
   - `replyBehavior` in `bot.json` controls how the bot decides whether to reply (modes: `mention-only`, `active`, `passive`, `disabled`), `replyProbability`, delay window, ignore lists, and keywords.
-  - Strategy pattern (`bot/strategies/replyStrategies.js`) provides `MentionOnly`, `Passive`, `Active`, and `Disabled` strategies.
+  - Strategy pattern (`bot/src/strategies/replyStrategies.js`) provides `MentionOnly`, `Passive`, `Active`, and `Disabled` strategies.
 
-- Gemini client: `bot/llm/gemini.js` sends prompts to Gemini REST API with configurable `api.geminiModel`, `api.retryAttempts`, and `api.retryBackoffMs`.
+- **Web Dashboard**: A React-based dashboard (running on port 5173 by default) allows you to view logs, manage relationships, and configure the bot.
+
+- **Gemini client**: `bot/src/llm/gemini.js` sends prompts to Gemini REST API with configurable `api.geminiModel`, `api.retryAttempts`, and `api.retryBackoffMs`.
+
+- **Internal API**: The bot runs an internal Express API (port 3001) for hot-reloading configuration and managing guild operations.
 
 ---
 
@@ -51,7 +55,7 @@ Important fields:
   - `globalRules`: list of rules the bot should always follow
   - `defaultRelationship`: used when initializing per-user entries on guild join
 
-- `memory.maxMessages`: how many messages to keep per-channel in memory
+- `memory.maxMessages`: how many messages to keep per-channel in memory (and DB)
 
 - `api`:
   - `geminiModel`: e.g. `gemini-2.0-flash`
@@ -74,15 +78,12 @@ Important fields:
 
 - `logger.maxLogLines`: integer, how many lines to keep from previous log when starting
 
-See [shared/config/bot.json](shared/config/bot.json) for defaults.
+See [shared/config/bot.json.defaults](shared/config/bot.json.defaults) for default values.
 
 ---
 
 ## Environment Variables
-
-The bot requires the following environment variables (use a `.env` file in development):
-
-- `DISCORD_TOKEN` — Discord bot token
+DISCORD_CLIENT_ID` — Discord client ID (used for dashboard and invites)
 - `GEMINI_API_KEY` — API key for Google Gemini/Vertex AI
 
 - `POSTGRES_DB` - The name of the database to use.
@@ -92,8 +93,9 @@ The bot requires the following environment variables (use a `.env` file in devel
 - `POSTGRES_PORT` - The port for the database.
 - `PGADMIN_DEFAULT_EMAIL` - The email for the pgAdmin user.
 - `PGADMIN_DEFAULT_PASSWORD` - The password for the pgAdmin user.
-- `API_PORT` - The port for the Express API server.
-- `DASHBOARD_PORT` - The port for the web dashboard.
+- `API_PORT` - The port for the Express API server (default: 3000).
+- `DASHBOARD_PORT` - The port for the web dashboard (default: 5173).
+- `DOCS_PORT` - The port for the documentation server (default: 5174).
 
 ---
 
@@ -105,6 +107,12 @@ Install dependencies and run:
 docker-compose up --build
 ```
 
+Access the services:
+- **Dashboard**: http://localhost:5173
+- **API**: http://localhost:3000
+- **Documentation**: http://localhost:5174
+- **pgAdmin**: http://localhost:5050 (Login with email/password from .env)
+
 During development, the `bot` service is configured with a mounted volume and `nodemon` for automatic restarts on code changes.
 
 Data storage: When the bot starts or joins a server, it automatically creates database entries for the guild and its members.
@@ -115,15 +123,15 @@ Log file: `discordllmbot.log` — the logger truncates the file on startup to ke
 
 ## Key Implementation Notes
 
-- Relationship persistence: `bot/personality/relationships.js` maintains in-memory caches per guild (`guildRelationships[guildId]`) and saves to the PostgreSQL database using the persistence layer. Relationships include per-user `username`, `displayName`, `attitude`, `behavior`, and `boundaries`.
+- **Relationship persistence**: `bot/src/personality/relationships.js` maintains in-memory caches per guild (`guildRelationships[guildId]`) and saves to the PostgreSQL database using the persistence layer (`shared/storage/persistence.js`). Relationships include per-user `username`, `displayName`, `attitude`, `behavior`, and `boundaries`.
 
-- Conversation context: `bot/memory/context.js` maintains per-channel message history in memory (`guildContexts[guildId][channelId]`) and persists to the database.
+- **Conversation context**: `bot/src/memory/context.js` maintains per-channel message history in memory (`guildContexts[guildId][channelId]`) and persists to the database.
 
-- Event handling: `bot/events/` contains all Discord event handlers separated from main application logic for better modularity.
+- **Event handling**: `bot/src/events/` contains all Discord event handlers separated from main application logic for better modularity.
 
-- Member enumeration: the bot requests the `Guild Members` intent and will attempt to `guild.members.fetch()` on startup/guild join to populate per-user relationship entries. If fetch fails (or is disabled) it falls back to cached members.
+- **Member enumeration**: the bot requests the `Guild Members` intent and will attempt to `guild.members.fetch()` on startup/guild join to populate per-user relationship entries. If fetch fails (or is disabled) it falls back to cached members.
 
-- Logging: prefer `logger.api()` for external API calls (Gemini and Discord profile updates), `logger.message()` for message-level events (mentions/replies), and `logger.info()/warn()/error()` for operational logs.
+- **Logging**: prefer `logger.api()` for external API calls (Gemini and Discord profile updates), `logger.message()` for message-level events (mentions/replies), and `logger.info()/warn()/error()` for operational logs.
 
 ---
 
@@ -131,6 +139,10 @@ Log file: `discordllmbot.log` — the logger truncates the file on startup to ke
 
 Suggested next steps you can implement:
 
+- **Admin commands**: add Discord commands for admins to inspect and edit relationships in-chat (eg. `!rel set <userId> <json>`).
+- **More advanced reply strategies**: add context-aware scoring, conversation topic detection, and rate-limiting heuristics.
+- **Tests**: add unit tests for `replyDecider`, `responseDelay`, and `prompt` to validate behavior.
+- **Improve Dashboard**: Add more visualizations and controls to the web dashboard
 - Web Dashboard: Use the provided `dashboard` and `api` services to manage the bot via a web interface.
 - Admin commands: add Discord commands for admins to inspect and edit relationships in-chat (eg. `!rel set <userId> <json>`).
 - More advanced reply strategies: add context-aware scoring, conversation topic detection, and rate-limiting heuristics.

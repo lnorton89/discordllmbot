@@ -1,3 +1,5 @@
+> **Note:** This is a historical plan. The features described here may have been implemented or superseded. See `README.md` for current status.
+
 # Project Improvement Plan
 
 This document outlines a plan for improving the DiscordLLMBot project. The focus is on enhancing modularity, state management, configurability, and error handling, as well as adding new features.

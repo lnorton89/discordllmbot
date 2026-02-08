@@ -1,3 +1,5 @@
+> **Note:** This is a historical plan. The features described here may have been implemented or superseded. See `README.md` for current status.
+
 # Database Improvement Plan
 
 This document outlines a plan for improving the database schema and data access layer of the DiscordLLMBot project.

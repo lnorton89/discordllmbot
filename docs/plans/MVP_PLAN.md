@@ -1,3 +1,5 @@
+> **Note:** This is a historical plan. The features described here may have been implemented or superseded. See `README.md` for current status.
+
 # MVP Roadmap for DiscordLLMBot
 
 ## Current State Assessment

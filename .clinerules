@@ -67,7 +67,7 @@
 - Parentheses in lists: `- behavior`, not `- > behavior`
 
 ## Critical Patterns NOT to Break
-1. **In-memory state** keyed by Discord IDs (guilds, channels, users)
+1. **In-memory state** keyed by Discord IDs (guilds, channels, users) - *synced with DB*
 2. **Prompt engineering** as primary behavior control
 3. **Message filtering** order: bot check → guild check → mention check
 4. **Context slice**: Remove triggering message with `.slice(0, -1)` to prevent echo
@@ -75,38 +75,44 @@
 
 ## When Adding Features
 1. Ask: Where does this fit? (memory/llm/personality/utils/core/events)
-2. Check: Does this affect the prompt? (Modify `core/prompt.js`)
-3. Check: Is this user-specific? (Use `relationships.js`)
+2. Check: Does this affect the prompt? (Modify `bot/src/core/prompt.js`)
+3. Check: Is this user-specific? (Use `relationships.js` and DB)
 4. Log to file: All major operations logged via `logger`
 5. Document: Add to `docs/WORKLOG.md` and this session file
 
+
 ## File Organization
 ```
-src/
-  index.js                           ← Main entry point (thin: setup + event registration)
-  llm/gemini.js                      ← External API calls + retry logic
-  memory/context.js                  ← Channel-specific history + persistence
-  storage/                           ← Data I/O layer
-  personality/                       ← Bot identity & user config
-  core/                              ← Business logic (moved from utils/)
-    prompt.js                       ← Builds prompts for Gemini from persona, relationship, and context
-    replyDecider.js                 ← Decision logic (Phase A/B) for when to reply
-    responseDelay.js                ← Human-like delay calculation
-  events/                            ← Event handlers (extracted from index.js)
-    clientReady.js                  ← Bot ready event handler
-    messageCreate.js                ← Message handling and reply logic
-    guildCreate.js                  ← Guild join event handler
-    guildMemberAdd.js               ← Member join event handler
-    index.js                        ← Event loader
-  utils/                             ← Helper utilities (logger, profileUpdater, sanitizeName only)
-    logger.js                       ← Structured logger (file + console)
-    profileUpdater.js               ← Sync Discord profile (username/avatar) with config
-    sanitizeName.js                 ← Sanitize names for Windows-safe filenames
+bot/
+  src/
+    index.js                           ← Main entry point (setup + event registration + internal API)
+    llm/gemini.js                      ← External API calls + retry logic
+    memory/context.js                  ← Channel-specific history + persistence
+    personality/                       ← Bot identity & user config
+    core/                              ← Business logic
+      prompt.js                       ← Builds prompts for Gemini
+      replyDecider.js                 ← Decision logic (Phase A/B)
+      responseDelay.js                ← Human-like delay calculation
+    events/                            ← Event handlers
+      clientReady.js                  ← Bot ready event handler
+      messageCreate.js                ← Message handling and reply logic
+      guildCreate.js                  ← Guild join event handler
+      guildMemberAdd.js               ← Member join event handler
+      index.js                        ← Event loader
+    utils/                             ← Helper utilities
+      profileUpdater.js               ← Sync Discord profile with config
+      sanitizeName.js                 ← Sanitize names
+shared/
+  storage/                           ← Data I/O layer (database, persistence, lock)
   config/
     bot.json                        ← Bot configuration (name, avatar, personality, API settings)
     configLoader.js                 ← Config file parser and cache
     validation.js                   ← Environment var validation
+  utils/
+    logger.js                       ← Structured logger (file + console)
 
+api/                                 ← Express API for dashboard
+dashboard/                           ← Vite + React frontend
 docs/
   sessions/                         ← Session notes (auto-tracked)
   plans/                            ← Project plan documents
@@ -115,7 +121,7 @@ docs/
 discordllmbot.log                   ← Live log file (recreated on startup)
 ```
 
-## Configuration (src/config/bot.json)
+## Configuration (shared/config/bot.json)
 
 **Reply Behavior:**
 ```json
