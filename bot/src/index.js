@@ -9,7 +9,7 @@ const { loadGuildRelationships } = relationshipsModule;
 
 import { validateEnvironment } from '../../shared/config/validation.js'
 import { logger, initializeLogger } from '../../shared/utils/logger.js'
-import { getBotConfig, getMemoryConfig } from '../../shared/config/configLoader.js';
+import { getBotConfig, getMemoryConfig, reloadConfig } from '../../shared/config/configLoader.js';
 
 import { pruneOldMessages } from '../../shared/storage/persistence.js';
 
@@ -84,6 +84,17 @@ internalApp.post('/reload', async (req, res) => {
         res.status(200).send({ message: 'Reloaded' });
     } else {
         res.status(400).send({ error: 'Missing guildId' });
+    }
+});
+
+internalApp.post('/reload-config', (req, res) => {
+    try {
+        reloadConfig();
+        logger.info('Configuration reloaded via internal API.');
+        res.status(200).send({ message: 'Config reloaded' });
+    } catch (err) {
+        logger.error('Failed to reload config', err);
+        res.status(500).send({ error: 'Failed to reload config' });
     }
 });
 

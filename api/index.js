@@ -48,7 +48,7 @@ app.get('/api/config', (req, res) => {
   }
 });
 
-app.post('/api/config', (req, res) => {
+app.post('/api/config', async (req, res) => {
   try {
     const newConfig = req.body;
     // Basic validation: ensure it's an object
@@ -58,6 +58,15 @@ app.post('/api/config', (req, res) => {
 
     fs.writeFileSync(BOT_CONFIG_PATH, JSON.stringify(newConfig, null, 2), 'utf-8');
     logger.info('Config updated via API');
+
+    // Notify bot to reload config
+    try {
+        await axios.post('http://bot:3001/reload-config');
+        logger.info('Bot notified to reload config');
+    } catch (botErr) {
+        logger.error('Failed to notify bot of config change', botErr);
+    }
+
     res.json({ message: 'Config updated successfully' });
   } catch (err) {
     logger.error('Failed to update config', err);

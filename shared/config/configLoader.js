@@ -27,6 +27,14 @@ export function loadConfig() {
 }
 
 /**
+ * Force reload of configuration from disk
+ */
+export function reloadConfig() {
+    cachedConfig = null
+    return loadConfig()
+}
+
+/**
  * Get bot personality config
  * @returns {Object} Bot persona settings
  */
