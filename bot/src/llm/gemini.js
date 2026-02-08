@@ -136,11 +136,12 @@ export async function generateReply(prompt) {
 
         const data = await res.json()
         const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? null
+        const usageMetadata = data?.usageMetadata || null
         
         // Do not log reply content or lengths here to avoid duplicating
         // message content in application logs. Caller will decide what to log.
 
-        return reply
+        return { text: reply, usageMetadata }
     }, retryAttempts, retryBackoffMs)
 }
 

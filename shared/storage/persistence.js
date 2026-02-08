@@ -148,11 +148,11 @@ export async function pruneOldMessages(maxAgeDays) {
     await db.query("DELETE FROM messages WHERE timestamp < NOW() - INTERVAL '1 day' * $1", [maxAgeDays]);
 }
 
-export async function logBotReply(guildId, channelId, userId, username, displayName, avatarUrl, userMessage, botReply) {
+export async function logBotReply(guildId, channelId, userId, username, displayName, avatarUrl, userMessage, botReply, processingTimeMs, promptTokens, responseTokens) {
     const db = await getDb();
     await db.query(
-        'INSERT INTO bot_replies (guildId, channelId, userId, username, displayName, avatarUrl, userMessage, botReply) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-        [guildId, channelId, userId, username, displayName, avatarUrl, userMessage, botReply]
+        'INSERT INTO bot_replies (guildId, channelId, userId, username, displayName, avatarUrl, userMessage, botReply, processingTimeMs, promptTokens, responseTokens) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
+        [guildId, channelId, userId, username, displayName, avatarUrl, userMessage, botReply, processingTimeMs, promptTokens, responseTokens]
     );
 }
 
@@ -182,7 +182,9 @@ export async function getAnalyticsData() {
         SELECT 
             COUNT(*) as total_replies,
             COUNT(DISTINCT guildId) as active_servers,
-            COUNT(DISTINCT userId) as active_users
+            COUNT(DISTINCT userId) as active_users,
+            ROUND(AVG(processingTimeMs)) as avg_processing_time,
+            SUM(COALESCE(promptTokens, 0) + COALESCE(responseTokens, 0)) as total_tokens
         FROM bot_replies 
         WHERE timestamp > NOW() - INTERVAL '24 hours'
     `);

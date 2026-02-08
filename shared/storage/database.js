@@ -100,8 +100,13 @@ export async function setupSchema() {
                 channelId TEXT NOT NULL,
                 userId TEXT NOT NULL,
                 username TEXT NOT NULL,
+                displayName TEXT,
+                avatarUrl TEXT,
                 userMessage TEXT NOT NULL,
                 botReply TEXT NOT NULL,
+                processingTimeMs INTEGER,
+                promptTokens INTEGER,
+                responseTokens INTEGER,
                 timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );`
         ];
@@ -127,6 +132,21 @@ export async function setupSchema() {
         if (!columnNames.includes('avatarurl')) {
             await pool.query('ALTER TABLE bot_replies ADD COLUMN avatarUrl TEXT;');
             logger.info('Added avatarUrl column to bot_replies table.');
+        }
+
+        if (!columnNames.includes('processingtimems')) {
+            await pool.query('ALTER TABLE bot_replies ADD COLUMN processingTimeMs INTEGER;');
+            logger.info('Added processingTimeMs column to bot_replies table.');
+        }
+
+        if (!columnNames.includes('prompttokens')) {
+            await pool.query('ALTER TABLE bot_replies ADD COLUMN promptTokens INTEGER;');
+            logger.info('Added promptTokens column to bot_replies table.');
+        }
+
+        if (!columnNames.includes('responsetokens')) {
+            await pool.query('ALTER TABLE bot_replies ADD COLUMN responseTokens INTEGER;');
+            logger.info('Added responseTokens column to bot_replies table.');
         }
 
         logger.info('✓ Database schema verified/created.');

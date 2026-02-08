@@ -66,7 +66,9 @@ export async function handleMessageCreate(message, client) {
         const delayMs = calculateDelay(replyBehavior)
         await new Promise(r => setTimeout(r, delayMs))
 
-        const reply = await generateReply(prompt)
+        const startTime = Date.now()
+        const { text: reply, usageMetadata } = await generateReply(prompt)
+        const processingTimeMs = Date.now() - startTime
 
         if (reply) {
             // Validate message length (Discord limit: 2000 chars)
@@ -88,7 +90,10 @@ export async function handleMessageCreate(message, client) {
                 message.member?.displayName ?? message.author.username,
                 message.author.displayAvatarURL({ extension: 'png', size: 64 }),
                 cleanMessage,
-                finalReply
+                finalReply,
+                processingTimeMs,
+                usageMetadata?.promptTokenCount,
+                usageMetadata?.candidatesTokenCount
             );
 
             // Add the bot's reply to the context
