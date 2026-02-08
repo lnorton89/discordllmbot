@@ -69,6 +69,7 @@ export async function setupSchema() {
             );`,
             `ALTER TABLE relationships ADD COLUMN IF NOT EXISTS username TEXT;`,
             `ALTER TABLE relationships ADD COLUMN IF NOT EXISTS displayName TEXT;`,
+            `ALTER TABLE relationships ADD COLUMN IF NOT EXISTS avatarUrl TEXT;`,
             `ALTER TABLE relationships ADD COLUMN IF NOT EXISTS ignored BOOLEAN DEFAULT FALSE;`,
             `CREATE TABLE IF NOT EXISTS relationship_behaviors (
                 id SERIAL PRIMARY KEY,

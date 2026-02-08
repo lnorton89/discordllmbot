@@ -30,7 +30,7 @@ export async function loadRelationships(guildId) {
     const db = await getDb();
     const rels = {};
 
-    const relRes = await db.query('SELECT userId, attitude, username, displayName, ignored FROM relationships WHERE guildId = $1', [guildId]);
+    const relRes = await db.query('SELECT userId, attitude, username, displayName, ignored, avatarUrl FROM relationships WHERE guildId = $1', [guildId]);
 
     for (const row of relRes.rows) {
         const behaviorRes = await db.query('SELECT behavior FROM relationship_behaviors WHERE guildId = $1 AND userId = $2', [guildId, row.userId]);
@@ -40,6 +40,7 @@ export async function loadRelationships(guildId) {
             attitude: row.attitude,
             username: row.username,
             displayName: row.displayname,
+            avatarUrl: row.avatarurl,
             ignored: row.ignored,
             behavior: behaviorRes.rows.map(r => r.behavior),
             boundaries: boundaryRes.rows.map(r => r.boundary),
@@ -69,7 +70,7 @@ export async function saveRelationships(guildId, relationships) {
 
         for (const userId in relationships) {
             const rel = relationships[userId];
-            await client.query('INSERT INTO relationships (guildId, userId, attitude, username, displayName, ignored) VALUES ($1, $2, $3, $4, $5, $6)', [guildId, userId, rel.attitude, rel.username, rel.displayName, rel.ignored ?? false]);
+            await client.query('INSERT INTO relationships (guildId, userId, attitude, username, displayName, ignored, avatarUrl) VALUES ($1, $2, $3, $4, $5, $6, $7)', [guildId, userId, rel.attitude, rel.username, rel.displayName, rel.ignored ?? false, rel.avatarUrl]);
             for (const b of rel.behavior) {
                 await client.query('INSERT INTO relationship_behaviors (guildId, userId, behavior) VALUES ($1, $2, $3)', [guildId, userId, b]);
             }
@@ -166,4 +167,50 @@ export async function getLatestReplies(limit = 10) {
         [limit]
     );
     return result.rows;
+}
+
+/**
+ * Gathers analytics data for the dashboard.
+ *
+ * @returns {Promise<Object>} An object containing various analytics data.
+ */
+export async function getAnalyticsData() {
+    const db = await getDb();
+    
+    // Stats for the last 24 hours
+    const stats24h = await db.query(`
+        SELECT 
+            COUNT(*) as total_replies,
+            COUNT(DISTINCT guildId) as active_servers,
+            COUNT(DISTINCT userId) as active_users
+        FROM bot_replies 
+        WHERE timestamp > NOW() - INTERVAL '24 hours'
+    `);
+
+    // Volume over time (last 7 days by day)
+    const volume = await db.query(`
+        SELECT 
+            TO_CHAR(timestamp, 'YYYY-MM-DD') as date,
+            COUNT(*) as count
+        FROM bot_replies
+        WHERE timestamp > NOW() - INTERVAL '7 days'
+        GROUP BY TO_CHAR(timestamp, 'YYYY-MM-DD')
+        ORDER BY date ASC
+    `);
+
+    // Top servers (all time)
+    const topServers = await db.query(`
+        SELECT g.guildName, COUNT(*) as reply_count
+        FROM bot_replies r
+        JOIN guilds g ON r.guildId = g.guildId
+        GROUP BY g.guildName
+        ORDER BY reply_count DESC
+        LIMIT 5
+    `);
+
+    return {
+        stats24h: stats24h.rows[0],
+        volume: volume.rows,
+        topServers: topServers.rows
+    };
 }

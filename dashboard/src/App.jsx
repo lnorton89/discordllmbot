@@ -1,87 +1,219 @@
-import { useState, useEffect } from 'react'
-import axios from 'axios'
-import { Routes, Route, Link, useLocation } from 'react-router-dom'
-import Settings from './components/Settings'
-import Relationships from './components/Relationships'
-import Logs from './components/Logs'
-import Servers from './components/Servers'
-import LatestReplies from './components/LatestReplies'
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { 
+  ThemeProvider, 
+  CssBaseline, 
+  AppBar, 
+  Toolbar, 
+  Typography, 
+  Container, 
+  Box, 
+  Chip,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  IconButton
+} from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import SettingsIcon from '@mui/icons-material/Settings';
+import DnsIcon from '@mui/icons-material/Dns';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import MenuIcon from '@mui/icons-material/Menu';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 
-function App() {
-  const [health, setHealth] = useState(null)
+import theme from './theme';
+import Settings from './components/Settings';
+import Logs from './components/Logs';
+import Servers from './components/Servers';
+import Dashboard from './components/Dashboard';
+
+const drawerWidth = 240;
+
+function AppContent() {
+  const [health, setHealth] = useState(null);
+  const [open, setOpen] = useState(true);
+  const muiTheme = useTheme();
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const fetchHealth = () => {
       axios.get('/api/health')
         .then(res => setHealth(res.data))
-        .catch(err => console.error('Failed to fetch health', err))
-    }, 5000)
-    
-    axios.get('/api/health')
-      .then(res => setHealth(res.data))
-      .catch(err => console.error('Failed to fetch health', err))
+        .catch(err => console.error('Failed to fetch health', err));
+    };
 
-    return () => clearInterval(interval)
-  }, [])
+    fetchHealth();
+    const interval = setInterval(fetchHealth, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const toggleDrawer = () => {
+    setOpen(!open);
+  };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50 flex flex-col items-center p-8">
-      <header className="w-full max-w-5xl flex justify-between items-center mb-12">
-        <h1 className="text-3xl font-bold text-indigo-400">DiscordLLMBot</h1>
-        <nav className="flex space-x-4">
-          <NavLink to="/" label="Status" />
-          <NavLink to="/settings" label="Settings" />
-          <NavLink to="/relationships" label="Relationships" />
-          <NavLink to="/servers" label="Servers" />
-          <NavLink to="/logs" label="Logs" />
-        </nav>
-      </header>
-
-      <main className="w-full max-w-5xl flex flex-col items-center">
-        <Routes>
-          <Route path="/" element={(
-            <div className="flex flex-col items-center w-full space-y-8">
-              <LatestReplies />
-            </div>
-          )} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/relationships" element={<Relationships />} />
-          <Route path="/servers" element={<Servers />} />
-          <Route path="/logs" element={<Logs />} />
-        </Routes>
-      </main>
-
-      <footer className="mt-auto pt-12 w-full max-w-5xl flex justify-between items-center text-slate-600 text-xs">
-        <div className="flex items-center space-x-4">
-          <span>DiscordLLMBot Dashboard v0.1.0</span>
+    <Box sx={{ display: 'flex' }}>
+      <CssBaseline />
+      <AppBar 
+        position="absolute" 
+        open={open} 
+        sx={{ 
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          transition: (theme) => theme.transitions.create(['width', 'margin'], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+          }),
+          ...(open && {
+            marginLeft: drawerWidth,
+            width: `calc(100% - ${drawerWidth}px)`,
+            transition: (theme) => theme.transitions.create(['width', 'margin'], {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
+          }),
+        }}
+      >
+        <Toolbar sx={{ pr: '24px' }}>
+          <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="open drawer"
+            onClick={toggleDrawer}
+            sx={{ marginRight: '36px', ...(open && { display: 'none' }) }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography component="h1" variant="h6" color="inherit" noWrap sx={{ flexGrow: 1 }}>
+            DiscordLLMBot Dashboard
+          </Typography>
           {health ? (
-            <span className={`font-mono uppercase text-xs px-2 py-0.5 rounded ${health.status === 'ok' ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`}>
-              API: {health.status}
-            </span>
+            <Chip 
+              label={`API: ${health.status}`} 
+              color={health.status === 'ok' ? 'success' : 'error'} 
+              size="small" 
+              variant="filled" 
+              sx={{ height: 24, ml: 2, bgcolor: health.status === 'ok' ? 'success.main' : 'error.main', color: 'white' }} 
+            />
           ) : (
-            <span className="text-slate-500 animate-pulse text-xs">Connecting...</span>
+            <Typography variant="caption" color="inherit">Connecting...</Typography>
           )}
-        </div>
-        {health && (
-          <span className="text-indigo-300 font-mono">Uptime: {Math.floor(health.uptime)}s</span>
-        )}
-      </footer>
-    </div>
-  )
-}
+        </Toolbar>
+      </AppBar>
 
-function NavLink({ to, label }) {
-  const location = useLocation();
-  const isActive = location.pathname === to;
+      <Drawer
+        variant="permanent"
+        open={open}
+        sx={{
+          '& .MuiDrawer-paper': {
+            position: 'relative',
+            whiteSpace: 'nowrap',
+            width: drawerWidth,
+            transition: (theme) => theme.transitions.create('width', {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
+            boxSizing: 'border-box',
+            ...(!open && {
+              overflowX: 'hidden',
+              transition: (theme) => theme.transitions.create('width', {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.leavingScreen,
+              }),
+              width: (theme) => theme.breakpoints.up('sm') ? theme.spacing(9) : theme.spacing(7),
+            }),
+          },
+        }}
+      >
+        <Toolbar
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            px: [1],
+          }}
+        >
+          <IconButton onClick={toggleDrawer}>
+            <ChevronLeftIcon />
+          </IconButton>
+        </Toolbar>
+        <Divider />
+        <List component="nav">
+          <NavItem to="/" label="Dashboard" icon={<DashboardIcon />} />
+          <NavItem to="/servers" label="Servers" icon={<DnsIcon />} />
+          <NavItem to="/settings" label="Settings" icon={<SettingsIcon />} />
+          <NavItem to="/logs" label="Logs" icon={<ListAltIcon />} />
+        </List>
+      </Drawer>
 
-  return (
-    <Link 
-      to={to}
-      className={`px-4 py-2 rounded-md transition-colors ${isActive ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white'}`}
-    >
-      {label}
-    </Link>
+      <Box
+        component="main"
+        sx={{
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'light'
+              ? theme.palette.grey[100]
+              : theme.palette.grey[900],
+          flexGrow: 1,
+          height: '100vh',
+          overflow: 'auto',
+        }}
+      >
+        <Toolbar />
+        <Container maxWidth="lg" sx={{ mt: 2, mb: 2 }}>
+          <Routes>
+            <Route path="/" element={<Dashboard health={health} />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/servers" element={<Servers />} />
+            <Route path="/logs" element={<Logs />} />
+          </Routes>
+        </Container>
+      </Box>
+    </Box>
   );
 }
 
-export default App
+function NavItem({ to, label, icon }) {
+  const location = useLocation();
+  const isActive = location.pathname === to;
+  
+  return (
+    <ListItemButton 
+      component={Link} 
+      to={to}
+      selected={isActive}
+      sx={{
+        '&.Mui-selected': {
+          bgcolor: 'primary.main',
+          color: 'primary.contrastText',
+          '&:hover': {
+            bgcolor: 'primary.dark',
+          },
+          '& .MuiListItemIcon-root': {
+            color: 'primary.contrastText',
+          }
+        },
+        mb: 0.5,
+        mx: 1,
+        borderRadius: 1
+      }}
+    >
+      <ListItemIcon sx={{ color: 'text.secondary' }}>
+        {icon}
+      </ListItemIcon>
+      <ListItemText primary={label} primaryTypographyProps={{ fontWeight: isActive ? 'bold' : 'medium' }} />
+    </ListItemButton>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <AppContent />
+    </ThemeProvider>
+  );
+}

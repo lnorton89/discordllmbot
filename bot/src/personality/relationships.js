@@ -98,12 +98,14 @@ export async function initializeGuildRelationships(guild) {
         const existing = guildRelationships[guildId]?.[memberId];
         const displayName = member.displayName ?? member.user?.username ?? memberId;
         const username = member.user?.username ?? memberId;
+        const avatarUrl = member.user?.displayAvatarURL({ forceStatic: true, size: 64 });
 
         if (!existing) {
             // This is a new user, add them.
             guildRelationships[guildId][memberId] = {
                 username,
                 displayName,
+                avatarUrl,
                 attitude: defaultRel.attitude,
                 behavior: Array.isArray(defaultRel.behavior) ? [...defaultRel.behavior] : [],
                 boundaries: Array.isArray(defaultRel.boundaries) ? [...defaultRel.boundaries] : [],
@@ -112,9 +114,10 @@ export async function initializeGuildRelationships(guild) {
             changed = true;
         } else {
             // This is an existing user, just ensure their data is up-to-date.
-            if (existing.username !== username || existing.displayName !== displayName) {
+            if (existing.username !== username || existing.displayName !== displayName || existing.avatarUrl !== avatarUrl) {
                 existing.username = username;
                 existing.displayName = displayName;
+                existing.avatarUrl = avatarUrl;
                 changed = true;
             }
         }

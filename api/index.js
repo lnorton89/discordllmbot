@@ -9,7 +9,7 @@ import { Server } from 'socket.io';
 import { logger } from '../shared/utils/logger.js';
 import { loadConfig } from '../shared/config/configLoader.js';
 import { connect, setupSchema } from '../shared/storage/database.js';
-import { loadRelationships, saveRelationships, getLatestReplies } from '../shared/storage/persistence.js';
+import { loadRelationships, saveRelationships, getLatestReplies, getAnalyticsData } from '../shared/storage/persistence.js';
 import axios from 'axios';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -149,7 +149,9 @@ app.get('/api/servers', async (req, res) => {
       servers = botGuilds.map(guild => ({
         id: guild.id,
         name: guild.name,
-        joinedAt: guild.joinedAt
+        joinedAt: guild.joinedAt,
+        iconURL: guild.iconURL,
+        memberCount: guild.memberCount
       }));
     } catch (botErr) {
       logger.warn('Could not fetch guilds from bot, falling back to database', botErr);
@@ -161,7 +163,9 @@ app.get('/api/servers', async (req, res) => {
       servers = dbResult.rows.map(row => ({
         id: row.guildid,
         name: row.guildname,
-        joinedAt: null // Join date not available from database
+        joinedAt: null, // Join date not available from database
+        iconURL: null,
+        memberCount: null
       }));
     }
     
@@ -233,6 +237,17 @@ app.get('/api/replies', async (req, res) => {
   } catch (err) {
     logger.error('Failed to fetch latest replies', err);
     res.status(500).json({ error: 'Failed to fetch latest replies' });
+  }
+});
+
+// NEW: Endpoint to get analytics data
+app.get('/api/analytics', async (req, res) => {
+  try {
+    const data = await getAnalyticsData();
+    res.json(data);
+  } catch (err) {
+    logger.error('Failed to fetch analytics', err);
+    res.status(500).json({ error: 'Failed to fetch analytics' });
   }
 });
 

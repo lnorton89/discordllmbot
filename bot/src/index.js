@@ -97,7 +97,10 @@ internalApp.get('/guilds', async (req, res) => {
         const guilds = client.guilds.cache.map(guild => ({
             id: guild.id,
             name: guild.name,
-            joinedAt: guild.joinedAt
+            joinedAt: guild.joinedAt,
+            iconURL: guild.iconURL({ forceStatic: true, size: 64 }),
+            memberCount: guild.memberCount,
+            ownerId: guild.ownerId
         }));
         
         res.json(guilds);
