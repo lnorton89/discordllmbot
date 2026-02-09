@@ -43,12 +43,11 @@ The entire bot behavior is driven by the **prompt template** in `bot/src/core/pr
 ```javascript
 if (message.author.bot) return  // Ignore bots
 if (!message.guild) return       // Guild-only (no DMs)
-if (!message.mentions.has(client.user)) return  // Requires mention
 ```
 **Important:** Context includes the triggering message—code removes it with `.slice(0, -1)` before prompting to avoid the bot echoing.
 
 ### 4. Random Reply Delay
-`Math.random() * 2000` ms delay simulates human response time. Keep this or replace with a different human-like pattern, but don't remove entirely.
+`calculateDelay(replyBehavior)` in `bot/src/core/responseDelay.js` simulates human response time. Keep this or replace with a different human-like pattern, but don't remove entirely.
 
 ## Environment & Secrets
 

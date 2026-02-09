@@ -20,7 +20,6 @@ DiscordLLMBot is a lightweight Discord bot that uses Google's Gemini (Generative
 - `data/` — runtime persisted data (mounted Docker volumes)
   - `postgres/` — PostgreSQL database files
   - `pgadmin/` — pgAdmin 4 data
-- `discordllmbot.log` — runtime log file
 - `package.json` — root package.json for monorepo workspaces and scripts
 
 ---
@@ -33,7 +32,7 @@ DiscordLLMBot is a lightweight Discord bot that uses Google's Gemini (Generative
 
 - **Contextual memory**: recent channel messages (authorId, author name, content) are stored in the PostgreSQL database (bounded by `memory.maxMessages`).
 
-- **Reply decision logic**: Phase A/B implemented
+- **Reply decision logic**:
   - `replyBehavior` in `bot.json` controls how the bot decides whether to reply (modes: `mention-only`, `active`, `passive`, `disabled`), `replyProbability`, delay window, ignore lists, and keywords.
   - Strategy pattern (`bot/src/strategies/replyStrategies.js`) provides `MentionOnly`, `Passive`, `Active`, and `Disabled` strategies.
 
@@ -58,7 +57,7 @@ Important fields:
 - `memory.maxMessages`: how many messages to keep per-channel in memory (and DB)
 
 - `api`:
-  - `geminiModel`: e.g. `gemini-2.0-flash`
+  - `geminiModel`: e.g. `gemini-1.5-flash`
   - `retryAttempts`: integer retries for Gemini client
   - `retryBackoffMs`: base backoff in ms used to scale exponential backoff
 
@@ -83,19 +82,15 @@ See [shared/config/bot.json.defaults](shared/config/bot.json.defaults) for defau
 ---
 
 ## Environment Variables
-DISCORD_CLIENT_ID` — Discord client ID (used for dashboard and invites)
-- `GEMINI_API_KEY` — API key for Google Gemini/Vertex AI
-
-- `POSTGRES_DB` - The name of the database to use.
-- `POSTGRES_USER` - The username for the database.
-- `POSTGRES_PASSWORD` - The password for the database.
-- `DATABASE_URL` - The connection string for the database.
-- `POSTGRES_PORT` - The port for the database.
-- `PGADMIN_DEFAULT_EMAIL` - The email for the pgAdmin user.
-- `PGADMIN_DEFAULT_PASSWORD` - The password for the pgAdmin user.
-- `API_PORT` - The port for the Express API server (default: 3000).
-- `DASHBOARD_PORT` - The port for the web dashboard (default: 5173).
-- `DOCS_PORT` - The port for the documentation server (default: 5174).
+- `DISCORD_TOKEN`: From Discord Developer Portal
+- `GEMINI_API_KEY`: From Google Cloud (free tier available)
+- `POSTGRES_DB`: The name of the database to use.
+- `POSTGRES_USER`: The username for the database.
+- `POSTGRES_PASSWORD`: The password for the database.
+- `DATABASE_URL`: The connection string for the database.
+- `POSTGRES_PORT`: The port for the database.
+- `PGADMIN_DEFAULT_EMAIL`: The email for the pgAdmin user.
+- `PGADMIN_DEFAULT_PASSWORD`: The password for the pgAdmin user.
 
 ---
 
