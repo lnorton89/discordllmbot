@@ -5,7 +5,6 @@ WORKDIR /usr/src/app
 # Copy all package.json files for workspaces
 COPY package*.json ./
 COPY bot/package*.json ./bot/
-COPY api/package*.json ./api/
 COPY dashboard/package*.json ./dashboard/
 COPY shared/package*.json ./shared/
 COPY docs/package*.json ./docs/
@@ -14,4 +13,5 @@ COPY docs/package*.json ./docs/
 RUN npm install
 
 WORKDIR /usr/src/app/bot
+EXPOSE 3000
 CMD ["npm", "start"]

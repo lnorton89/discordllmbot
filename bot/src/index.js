@@ -17,6 +17,8 @@ import { pruneOldMessages } from '../../shared/storage/persistence.js';
 import { handleClientReady, handleMessageCreate, handleGuildCreate, handleGuildMemberAdd } from './events/index.js';
 import { handleLeaveGuild } from './events/leaveGuild.js';
 
+import { startApi } from './api/server.js';
+
 // Read config early to supply logger settings before initializing logger
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const BOT_CONFIG_PATH = path.join(process.cwd(), 'shared', 'config', 'bot.json')
@@ -71,88 +73,8 @@ client.on('messageCreate', (message) => handleMessageCreate(message, client))
 client.on('guildCreate', handleGuildCreate)
 client.on('guildMemberAdd', handleGuildMemberAdd)
 
-// Internal API for hot-reloading
-const internalApp = express();
-const INTERNAL_PORT = 3001;
-internalApp.use(express.json());
-
-internalApp.post('/reload', async (req, res) => {
-    const { guildId } = req.body;
-    if (guildId) {
-        await loadGuildRelationships(guildId);
-        logger.info(`Reloaded relationships for guild ${guildId} via internal API.`);
-        res.status(200).send({ message: 'Reloaded' });
-    } else {
-        res.status(400).send({ error: 'Missing guildId' });
-    }
-});
-
-internalApp.post('/reload-config', (req, res) => {
-    try {
-        reloadConfig();
-        logger.info('Configuration reloaded via internal API.');
-        res.status(200).send({ message: 'Config reloaded' });
-    } catch (err) {
-        logger.error('Failed to reload config', err);
-        res.status(500).send({ error: 'Failed to reload config' });
-    }
-});
-
-internalApp.delete('/guilds/:serverId', async (req, res) => {
-    await handleLeaveGuild(req, res, client);
-});
-
-// Endpoint to get guild information including join date
-internalApp.get('/guilds', async (req, res) => {
-    try {
-        const guilds = client.guilds.cache.map(guild => ({
-            id: guild.id,
-            name: guild.name,
-            joinedAt: guild.joinedAt,
-            iconURL: guild.iconURL({ forceStatic: true, size: 64 }),
-            memberCount: guild.memberCount,
-            ownerId: guild.ownerId
-        }));
-        
-        res.json(guilds);
-    } catch (err) {
-        logger.error('Failed to fetch guilds', err);
-        res.status(500).json({ error: 'Failed to fetch guilds' });
-    }
-});
-
-// Endpoint to get channels for a specific guild
-internalApp.get('/guilds/:guildId/channels', async (req, res) => {
-    try {
-        const { guildId } = req.params;
-        const guild = client.guilds.cache.get(guildId);
-        
-        if (!guild) {
-            return res.status(404).json({ error: 'Guild not found' });
-        }
-
-        // Fetch channels from the guild
-        const channels = await guild.channels.fetch();
-        const channelList = channels
-            .filter(channel => channel.type === 0) // Filter for text channels only
-            .map(channel => ({
-                id: channel.id,
-                name: channel.name,
-                type: channel.type,
-                parentId: channel.parentId,
-                position: channel.position
-            }));
-
-        res.json(channelList);
-    } catch (err) {
-        logger.error('Failed to fetch channels', err);
-        res.status(500).json({ error: 'Failed to fetch channels' });
-    }
-});
-
-internalApp.listen(INTERNAL_PORT, () => {
-    logger.info(`Internal API listening on port ${INTERNAL_PORT}`);
-});
+// Start the API server
+startApi(client);
 
 // Graceful shutdown: Save state before exit
 process.on('SIGINT', async () => {

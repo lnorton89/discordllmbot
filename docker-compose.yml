@@ -26,12 +26,17 @@ services:
       - ./logs:/usr/src/app/logs
     command: npm run dev:container
     ports:
-      - "3001:3001"
+      - "${API_PORT}:3000"
     depends_on:
       db:
         condition: service_healthy
     env_file:
       - ./.env
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   pgadmin:
     container_name: discordllmbot-pgadmin
@@ -60,29 +65,6 @@ services:
     ports:
       - "${DOCS_PORT}:5173"
 
-  api:
-    container_name: discordllmbot-api
-    build:
-      context: .
-      dockerfile: api/Dockerfile.api
-    volumes:
-      - ./api:/usr/src/app/api
-      - ./shared:/usr/src/app/shared
-      - ./logs:/usr/src/app/logs
-    command: npm run dev
-    ports:
-      - "${API_PORT}:3000"
-    depends_on:
-      db:
-        condition: service_healthy
-    env_file:
-      - ./.env
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://api:3000/api/health || exit 1"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   dashboard:
     container_name: discordllmbot-dashboard
     build:
@@ -94,7 +76,7 @@ services:
     ports:
       - "${DASHBOARD_PORT}:5173"
     depends_on:
-      api:
+      bot:
         condition: service_healthy
     env_file:
       - ./.env
