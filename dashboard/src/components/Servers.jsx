@@ -104,8 +104,8 @@ function Row({
                   color="text.secondary"
                   sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
                 >
-                  <PeopleIcon sx={{ fontSize: 12 }} /> {server.memberCount}{" "}
-                  members
+                  <PeopleIcon sx={{ fontSize: 12 }} /> {server.memberCount - 1}{" "}
+                  {server.memberCount - 1 === 1 ? "member" : "members"}
                 </Typography>
               )}
             </Box>
@@ -339,6 +339,7 @@ function Servers() {
   useEffect(() => {
     fetchServers();
     fetchBotInfo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchServers = async () => {
@@ -346,6 +347,20 @@ function Servers() {
       setLoading(true);
       const response = await axios.get("/api/servers");
       setServers(response.data);
+      
+      // Auto-expand if only one server
+      if (response.data.length === 1) {
+        const serverId = response.data[0].id;
+        setExpandedServerId(serverId);
+        // We need to fetch relationships and channels for the auto-expanded server
+        // But we need to do it after state updates, or just call them directly here
+        // Since toggleExpand does both setting ID and fetching, we can replicate that logic
+        // or rely on a useEffect to fetch when expandedServerId changes.
+        // Let's call the fetchers directly to be safe and immediate.
+        fetchRelationships(serverId);
+        fetchChannels(serverId);
+      }
+      
       setError(null);
     } catch (err) {
       console.error("Failed to fetch servers:", err);

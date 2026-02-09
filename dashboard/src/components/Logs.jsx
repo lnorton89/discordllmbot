@@ -149,7 +149,7 @@ function Logs() {
             text: textPart,
             json: jsonObject,
           };
-        } catch (e) {
+        } catch {
           // If JSON parsing fails, return the whole line as text
           return {
             timestamp: timestampMatch ? timestampMatch[1] : null,
@@ -167,7 +167,7 @@ function Logs() {
           json: null,
         };
       }
-    } catch (e) {
+    } catch {
       return {
         timestamp: null,
         level: "OTHER",
@@ -229,7 +229,7 @@ function Logs() {
           <Box key={key} component="div" sx={{ ml: 2 }}>
             <Typography component="span">
               {indent}
-              <strong>"{key}"</strong>:
+              <strong>&quot;{key}&quot;</strong>:
             </Typography>{" "}
             {formatJsonForDisplay(value, depth + 1)}
             {index < entries.length - 1 && (

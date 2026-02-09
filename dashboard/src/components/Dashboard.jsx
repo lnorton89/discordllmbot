@@ -35,16 +35,48 @@ import {
   Error as ErrorIcon,
 } from "@mui/icons-material";
 
+const StatusItem = ({ icon, label, value, color }) => (
+  <Box
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      gap: 2,
+      px: 2,
+      flex: 1,
+    }}
+  >
+    <Avatar
+      variant="rounded"
+      sx={{
+        bgcolor: (theme) => alpha(theme.palette[color].main, 0.1),
+        color: (theme) => theme.palette[color].main,
+        width: 48,
+        height: 48,
+        flexShrink: 0,
+      }}
+    >
+      {icon}
+    </Avatar>
+    <Box>
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        fontWeight="medium"
+        noWrap
+      >
+        {label}
+      </Typography>
+      <Typography variant="h6" fontWeight="bold" noWrap>
+        {value}
+      </Typography>
+    </Box>
+  </Box>
+);
+
 function Dashboard({ health }) {
   const [stats, setStats] = useState(null);
   const [replies, setReplies] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
-  }, []);
 
   const fetchData = async () => {
     try {
@@ -61,6 +93,13 @@ function Dashboard({ health }) {
     }
   };
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchData();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const formatUptime = (seconds) => {
     if (!seconds) return "N/A";
     const d = Math.floor(seconds / (3600 * 24));
@@ -68,44 +107,6 @@ function Dashboard({ health }) {
     const m = Math.floor((seconds % 3600) / 60);
     return `${d}d ${h}h ${m}m`;
   };
-
-  const StatusItem = ({ icon, label, value, color }) => (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        gap: 2,
-        px: 2,
-        flex: 1,
-      }}
-    >
-      <Avatar
-        variant="rounded"
-        sx={{
-          bgcolor: (theme) => alpha(theme.palette[color].main, 0.1),
-          color: (theme) => theme.palette[color].main,
-          width: 48,
-          height: 48,
-          flexShrink: 0,
-        }}
-      >
-        {icon}
-      </Avatar>
-      <Box>
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          fontWeight="medium"
-          noWrap
-        >
-          {label}
-        </Typography>
-        <Typography variant="h6" fontWeight="bold" noWrap>
-          {value}
-        </Typography>
-      </Box>
-    </Box>
-  );
 
   return (
     <Box sx={{ p: 2 }}>
@@ -243,7 +244,7 @@ function Dashboard({ health }) {
                                       color: "text.secondary",
                                     }}
                                   >
-                                    "{reply.usermessage}"
+                                    &quot;{reply.usermessage}&quot;
                                   </Typography>
                                   <Typography
                                     variant="body2"
