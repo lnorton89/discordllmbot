@@ -1,406 +1,381 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Box,
   Paper,
   Typography,
   Grid,
-  Card,
-  CardContent,
-  CircularProgress,
+  Stack,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
   Avatar,
   Divider,
-  Alert,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Chip,
   Skeleton,
-  Stack,
-  LinearProgress
-} from '@mui/material';
+  LinearProgress,
+  alpha,
+} from "@mui/material";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-  Legend
-} from 'recharts';
-import {
+  ExpandMore as ExpandMoreIcon,
   Message as MessageIcon,
   People as PeopleIcon,
-  Dns as ServerIcon,
-  AccessTime as AccessTimeIcon,
-  Speed as SpeedIcon,
-  DataUsage as DataUsageIcon,
-  TrendingUp as TrendingUpIcon,
-  Token as TokenIcon
-} from '@mui/icons-material';
-
-// Improved StatCard component with better visual hierarchy
-function StatCard({ title, value, icon, color, loading = false, trend = null }) {
-  return (
-    <Card 
-      elevation={3} 
-      sx={{ 
-        height: '100%', 
-        display: 'flex', 
-        flexDirection: 'column',
-        transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-        '&:hover': {
-          transform: 'translateY(-4px)',
-          boxShadow: 6
-        }
-      }}
-    >
-      <CardContent sx={{ p: 3, flex: 1 }}>
-        {loading ? (
-          <Stack spacing={2}>
-            <Skeleton variant="circular" width={48} height={48} />
-            <Skeleton variant="text" width="60%" height={24} />
-            <Skeleton variant="text" width="80%" height={32} />
-          </Stack>
-        ) : (
-          <>
-            <Box sx={{
-              p: 1.5,
-              borderRadius: 3,
-              bgcolor: `${color}.light`,
-              color: `${color}.contrastText`,
-              mb: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 56,
-              height: 56
-            }}>
-              {icon}
-            </Box>
-            <Typography 
-              variant="h4" 
-              fontWeight="bold" 
-              sx={{ 
-                mb: 1,
-                lineHeight: 1.2
-              }}
-            >
-              {value}
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography 
-                variant="body2" 
-                color="text.secondary" 
-                fontWeight="medium"
-              >
-                {title}
-              </Typography>
-              {trend !== null && (
-                <Chip 
-                  label={`${trend >= 0 ? '+' : ''}${trend}%`}
-                  size="small"
-                  color={trend >= 0 ? 'success' : 'error'}
-                  icon={trend >= 0 ? <TrendingUpIcon fontSize="small" /> : <TrendingUpIcon fontSize="small" sx={{ transform: 'rotate(180deg)' }} />}
-                  sx={{ height: 20, fontSize: '0.7rem' }}
-                />
-              )}
-            </Box>
-          </>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
+  Dns as DnsIcon,
+  Token as TokenIcon,
+  CheckCircle as CheckCircleIcon,
+  Error as ErrorIcon,
+} from "@mui/icons-material";
 
 function Dashboard({ health }) {
   const [stats, setStats] = useState(null);
   const [replies, setReplies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const formatUptime = (seconds) => {
-    if (!seconds) return 'N/A';
-    const d = Math.floor(seconds / (3600*24));
-    const h = Math.floor(seconds % (3600*24) / 3600);
-    const m = Math.floor(seconds % 3600 / 60);
-    const s = Math.floor(seconds % 60);
-
-    const dDisplay = d > 0 ? d + (d === 1 ? " day, " : " days, ") : "";
-    const hDisplay = h > 0 ? h + (h === 1 ? " hour, " : " hours, ") : "";
-    const mDisplay = m > 0 ? m + (m === 1 ? " minute, " : " minutes, ") : "";
-    const sDisplay = s > 0 ? s + (s === 1 ? " second" : " seconds") : "";
-    return dDisplay + hDisplay + mDisplay + sDisplay;
-  };
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 30000); // Refresh every 30s
+    const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, []);
 
   const fetchData = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      
       const [analyticsRes, repliesRes] = await Promise.all([
-        axios.get('/api/analytics'),
-        axios.get('/api/replies?limit=5') // Increased limit for more activity
+        axios.get("/api/analytics"),
+        axios.get("/api/replies?limit=50"),
       ]);
-      
       setStats(analyticsRes.data);
       setReplies(repliesRes.data);
+      setLoading(false);
     } catch (err) {
-      console.error('Failed to fetch dashboard data', err);
-      setError('Failed to load dashboard data. Please try again later.');
-    } finally {
+      console.error("Failed to fetch dashboard data", err);
       setLoading(false);
     }
   };
 
-  // Calculate trends if available
-  const calculateTrend = (current, previous) => {
-    if (!previous || previous === 0) return null;
-    return Math.round(((current - previous) / previous) * 100);
+  const formatUptime = (seconds) => {
+    if (!seconds) return "N/A";
+    const d = Math.floor(seconds / (3600 * 24));
+    const h = Math.floor((seconds % (3600 * 24)) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    return `${d}d ${h}h ${m}m`;
   };
 
-  if (loading && !stats) {
-    return (
-      <Box sx={{ width: '100%', py: 4 }}>
-        <Skeleton variant="text" width="30%" height={40} sx={{ mb: 4 }} />
-        
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          {[...Array(4)].map((_, idx) => (
-            <Grid item xs={12} sm={6} md={3} key={idx}>
-              <StatCard 
-                title="Loading..." 
-                value="0" 
-                icon={<MessageIcon />}
-                color="primary"
-                loading={true}
-              />
-            </Grid>
-          ))}
-        </Grid>
-        
-        <Grid container spacing={3}>
-          <Grid item xs={12} lg={8}>
-            <Paper elevation={3} sx={{ p: 3, height: 300 }}>
-              <Skeleton variant="text" width="40%" height={30} sx={{ mb: 3 }} />
-              <Skeleton variant="rectangular" height={200} />
-            </Paper>
-          </Grid>
-          <Grid item xs={12} lg={4}>
-            <Paper elevation={3} sx={{ p: 3 }}>
-              <Skeleton variant="text" width="60%" height={30} sx={{ mb: 3 }} />
-              <Stack spacing={2}>
-                {[...Array(3)].map((_, idx) => (
-                  <Skeleton key={idx} variant="rectangular" height={60} />
-                ))}
-              </Stack>
-            </Paper>
-          </Grid>
-        </Grid>
+  const StatusItem = ({ icon, label, value, color }) => (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 2,
+        px: 2,
+        flex: 1,
+        minWidth: 0,
+      }}
+    >
+      <Avatar
+        variant="rounded"
+        sx={{
+          bgcolor: (theme) => alpha(theme.palette[color].main, 0.1),
+          color: (theme) => theme.palette[color].main,
+          width: 48,
+          height: 48,
+          flexShrink: 0,
+        }}
+      >
+        {icon}
+      </Avatar>
+      <Box sx={{ minWidth: 0 }}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          fontWeight="medium"
+          noWrap
+        >
+          {label}
+        </Typography>
+        <Typography variant="h6" fontWeight="bold" noWrap>
+          {value}
+        </Typography>
       </Box>
-    );
-  }
-
-  if (error && !stats) {
-    return (
-      <Box sx={{ width: '100%', py: 4 }}>
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-        <Paper elevation={3} sx={{ p: 3, textAlign: 'center' }}>
-          <Typography variant="h6" gutterBottom>
-            Unable to Load Dashboard Data
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            There was an issue connecting to the API. Please try again.
-          </Typography>
-          <Chip 
-            label="Retry Connection" 
-            color="primary" 
-            onClick={fetchData}
-            sx={{ cursor: 'pointer', mt: 1 }}
-          />
-        </Paper>
-      </Box>
-    );
-  }
+    </Box>
+  );
 
   return (
-    <Box sx={{ width: '100%', py: 3 }}>
-      {/* Header Section */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight="bold" color="text.primary" gutterBottom>
-          Dashboard Overview
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Monitor your Discord LLM Bot performance and activity
-        </Typography>
-      </Box>
+    <Box sx={{ p: 2 }}>
+      <Typography variant="h5" fontWeight="bold" gutterBottom>
+        Dashboard
+      </Typography>
 
-      {/* Stats Cards Grid */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Total Replies (24h)"
-            value={stats?.stats24h?.total_replies || 0}
-            icon={<MessageIcon />}
-            color="primary"
-            trend={calculateTrend(stats?.stats24h?.total_replies, stats?.statsPrevious24h?.total_replies)}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Active Servers (24h)"
-            value={stats?.stats24h?.active_servers || 0}
-            icon={<ServerIcon />}
-            color="secondary"
-            trend={calculateTrend(stats?.stats24h?.active_servers, stats?.statsPrevious24h?.active_servers)}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Active Users (24h)"
-            value={stats?.stats24h?.active_users || 0}
-            icon={<PeopleIcon />}
-            color="info"
-            trend={calculateTrend(stats?.stats24h?.active_users, stats?.statsPrevious24h?.active_users)}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Tokens Used (24h)"
-            value={stats?.stats24h?.total_tokens || 0}
-            icon={<TokenIcon />}
-            color="success"
-            trend={calculateTrend(
-              stats?.stats24h?.total_tokens,
-              stats?.statsPrevious24h?.total_tokens
-            )}
-          />
-        </Grid>
-      </Grid>
-
-      {/* Main Content Grid - Activity Chart, Top Servers, and System Health */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {/* Activity Chart - Takes up 2/3 of the space on large screens */}
-        <Grid item xs={12} lg={8}>
-          <Paper elevation={3} sx={{ p: 3, height: 350 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h6" fontWeight="bold">
-                Activity Volume (7 Days)
-              </Typography>
-              <Chip 
-                label="Last 7 days" 
-                size="small" 
-                variant="outlined" 
-                sx={{ borderRadius: 4 }}
+      <Grid container spacing={2}>
+        {/* Left Column: Status Strip & Latest Activity */}
+        <Grid>
+          <Stack spacing={2}>
+            {/* Status Strip */}
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2,
+                display: "flex",
+                alignItems: "center",
+                width: "100%",
+              }}
+            >
+              <StatusItem
+                icon={<MessageIcon />}
+                label="Replies (24h)"
+                value={stats?.stats24h?.total_replies || 0}
+                color="primary"
               />
-            </Box>
-            
-            {stats?.volume && stats.volume.length > 0 ? (
-              <ResponsiveContainer width="100%" height="85%">
-                <BarChart data={stats.volume}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fill: '#94a3b8', fontSize: 12 }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                  />
-                  <YAxis
-                    tick={{ fill: '#94a3b8', fontSize: 12 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <RechartsTooltip
-                    contentStyle={{ 
-                      backgroundColor: '#1e293b', 
-                      border: '1px solid #334155', 
-                      borderRadius: 8,
-                      color: '#f8fafc'
-                    }}
-                    itemStyle={{ color: '#f8fafc' }}
-                    labelStyle={{ color: '#94a3b8', marginBottom: 4 }}
-                  />
-                  <Legend />
-                  <Bar 
-                    dataKey="count" 
-                    fill="#6366f1" 
-                    radius={[4, 4, 0, 0]} 
-                    name="Replies" 
-                    barSize={30}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <Box sx={{ 
-                height: '100%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                color: 'text.secondary'
-              }}>
-                <Typography>No activity data available</Typography>
+              <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+              <StatusItem
+                icon={<DnsIcon />}
+                label="Active Servers"
+                value={stats?.stats24h?.active_servers || 0}
+                color="secondary"
+              />
+              <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+              <StatusItem
+                icon={<PeopleIcon />}
+                label="Active Users"
+                value={stats?.stats24h?.active_users || 0}
+                color="success"
+              />
+              <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+              <StatusItem
+                icon={<TokenIcon />}
+                label="Tokens Used"
+                value={stats?.stats24h?.total_tokens || 0}
+                color="warning"
+              />
+            </Paper>
+
+            {/* Latest Activity */}
+            <Paper
+              variant="outlined"
+              sx={{ height: "100%", overflow: "hidden" }}
+            >
+              <Box
+                sx={{
+                  px: 2,
+                  py: 1,
+                  borderBottom: 1,
+                  borderColor: "divider",
+                  bgcolor: "background.paper",
+                }}
+              >
+                <Typography variant="subtitle2" fontWeight="bold">
+                  Latest Activity
+                </Typography>
               </Box>
-            )}
-          </Paper>
+              <Box sx={{ height: "calc(100vh - 300px)", overflowY: "auto" }}>
+                <List dense sx={{ p: 0 }}>
+                  {loading && !replies.length
+                    ? [...Array(10)].map((_, i) => (
+                        <Box key={i} sx={{ p: 2 }}>
+                          <Skeleton variant="text" width="60%" />
+                          <Skeleton variant="text" width="40%" />
+                        </Box>
+                      ))
+                    : replies.map((reply) => (
+                        <React.Fragment key={reply.id}>
+                          <ListItem alignItems="flex-start" sx={{ py: 1 }}>
+                            <ListItemAvatar sx={{ minWidth: 40, mt: 0.5 }}>
+                              <Avatar
+                                alt={reply.username}
+                                src={reply.avatarurl}
+                                sx={{
+                                  width: 32,
+                                  height: 32,
+                                  fontSize: "0.8rem",
+                                }}
+                              >
+                                {reply.username?.charAt(0)}
+                              </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText
+                              primary={
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <Typography
+                                    variant="body2"
+                                    fontWeight="bold"
+                                    component="span"
+                                  >
+                                    {reply.displayname || reply.username}
+                                  </Typography>
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                  >
+                                    {new Date(
+                                      reply.timestamp,
+                                    ).toLocaleTimeString([], {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
+                                  </Typography>
+                                </Box>
+                              }
+                              secondaryTypographyProps={{ component: "div" }}
+                              secondary={
+                                <Box component="div" sx={{ mt: 0.5 }}>
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                    display="block"
+                                  >
+                                    in {reply.guildname}
+                                  </Typography>
+                                  <Typography
+                                    variant="body2"
+                                    color="text.primary"
+                                    sx={{
+                                      mt: 0.5,
+                                      fontStyle: "italic",
+                                      fontSize: "0.8rem",
+                                      color: "text.secondary",
+                                    }}
+                                  >
+                                    "{reply.usermessage}"
+                                  </Typography>
+                                  <Typography
+                                    variant="body2"
+                                    color="text.primary"
+                                    sx={{ mt: 0.5, fontSize: "0.85rem" }}
+                                  >
+                                    {reply.botreply}
+                                  </Typography>
+                                </Box>
+                              }
+                            />
+                          </ListItem>
+                          <Divider component="li" />
+                        </React.Fragment>
+                      ))}
+                </List>
+              </Box>
+            </Paper>
+          </Stack>
         </Grid>
 
-        {/* Right Column - Top Servers and System Health stacked on top of each other */}
-        <Grid item xs={12} lg={4}>
-          {/* Top Servers */}
-          <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>
-              Top Servers (All Time)
-            </Typography>
-            
-            {stats?.topServers && stats.topServers.length > 0 ? (
-              <TableContainer>
+        {/* 3. Right Column: Metrics & Health */}
+        <Grid item>
+          <Stack spacing={2}>
+            {/* Activity Table */}
+            <Paper variant="outlined">
+              <Box
+                sx={{ px: 2, py: 1, borderBottom: 1, borderColor: "divider" }}
+              >
+                <Typography variant="subtitle2" fontWeight="bold">
+                  Activity (7 Days)
+                </Typography>
+              </Box>
+              <TableContainer sx={{ maxHeight: 300 }}>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell>#</TableCell>
-                      <TableCell>Server</TableCell>
-                      <TableCell align="right">Replies</TableCell>
+                      <TableCell sx={{ py: 1, px: 2 }}>Date</TableCell>
+                      <TableCell align="right" sx={{ py: 1, px: 2 }}>
+                        Replies
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {stats.topServers.slice(0, 5).map((server, index) => (
-                      <TableRow key={server.guildname}>
-                        <TableCell>
-                          <Chip 
-                            label={index + 1} 
-                            size="small" 
-                            color={index < 3 ? "primary" : "default"}
-                            sx={{ minWidth: 24 }}
-                          />
+                    {stats?.volume &&
+                      [...stats.volume].reverse().map((day) => (
+                        <TableRow key={day.date}>
+                          <TableCell
+                            sx={{ py: 1, px: 2, borderBottom: "none" }}
+                          >
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              {new Date(day.date).toLocaleDateString(
+                                undefined,
+                                { month: "short", day: "numeric" },
+                              )}
+                            </Typography>
+                          </TableCell>
+                          <TableCell
+                            align="right"
+                            sx={{ py: 1, px: 2, borderBottom: "none" }}
+                          >
+                            <Typography variant="caption" fontWeight="bold">
+                              {day.count}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    {(!stats?.volume || stats.volume.length === 0) && (
+                      <TableRow>
+                        <TableCell colSpan={2} align="center" sx={{ py: 2 }}>
+                          <Typography variant="caption" color="text.secondary">
+                            No activity data
+                          </Typography>
                         </TableCell>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Avatar 
-                              src={server.icon_url || undefined} 
-                              alt={server.guildname} 
-                              sx={{ width: 24, height: 24 }}
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+
+            {/* Top Servers */}
+            <Paper variant="outlined">
+              <Box
+                sx={{ px: 2, py: 1, borderBottom: 1, borderColor: "divider" }}
+              >
+                <Typography variant="subtitle2" fontWeight="bold">
+                  Top Servers
+                </Typography>
+              </Box>
+              <TableContainer sx={{ maxHeight: 300 }}>
+                <Table size="small">
+                  <TableBody>
+                    {stats?.topServers?.slice(0, 5).map((server) => (
+                      <TableRow key={server.guildname}>
+                        <TableCell sx={{ py: 1, px: 2, borderBottom: "none" }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            <Avatar
+                              src={server.icon_url}
+                              sx={{ width: 20, height: 20, fontSize: "0.7rem" }}
                             >
                               {server.guildname.charAt(0)}
                             </Avatar>
-                            <Typography variant="body2" noWrap maxWidth={120}>
+                            <Typography
+                              variant="caption"
+                              noWrap
+                              sx={{ maxWidth: 100 }}
+                            >
                               {server.guildname}
                             </Typography>
                           </Box>
                         </TableCell>
-                        <TableCell align="right">
-                          <Typography variant="body2" fontWeight="medium">
+                        <TableCell
+                          align="right"
+                          sx={{ py: 1, px: 2, borderBottom: "none" }}
+                        >
+                          <Typography variant="caption" fontWeight="bold">
                             {server.reply_count}
                           </Typography>
                         </TableCell>
@@ -409,145 +384,82 @@ function Dashboard({ health }) {
                   </TableBody>
                 </Table>
               </TableContainer>
-            ) : (
-              <Box sx={{ textAlign: 'center', py: 4 }}>
-                <Typography color="text.secondary">No server data available</Typography>
-              </Box>
-            )}
-          </Paper>
+            </Paper>
 
-          {/* System Health */}
-          <Paper elevation={3} sx={{ p: 3 }}>
-            <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>
-              System Health
-            </Typography>
-            
-            <Stack spacing={2}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" color="text.secondary">API Status</Typography>
-                <Chip 
-                  label={health?.status || 'Unknown'} 
-                  size="small"
-                  color={health?.status === 'ok' ? 'success' : 'error'}
-                  sx={{ height: 24 }}
-                />
-              </Box>
-              
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" color="text.secondary">Uptime</Typography>
-                <Typography variant="body2" fontWeight="medium">
-                  {formatUptime(health?.uptime)}
-                </Typography>
-              </Box>
-              
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" color="text.secondary">Memory Usage</Typography>
-                <Typography variant="body2" fontWeight="medium">
-                  {health?.memory_usage ? `${Math.round(health.memory_usage)}%` : 'N/A'}
-                </Typography>
-              </Box>
-              
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" color="text.secondary">CPU Usage</Typography>
-                <Typography variant="body2" fontWeight="medium">
-                  {health?.cpu_usage ? `${Math.round(health.cpu_usage)}%` : 'N/A'}
-                </Typography>
-              </Box>
-            </Stack>
-          </Paper>
-        </Grid>
-      </Grid>
-
-      {/* Latest Activity - Full width to maximize space */}
-      <Grid item xs={12}>
-        <Paper elevation={3} sx={{ p: 3 }}>
-          <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>
-            Latest Activity
-          </Typography>
-          
-          {replies.length === 0 ? (
-            <Alert severity="info" sx={{ borderRadius: 2 }}>
-              No recent activity to display.
-            </Alert>
-          ) : (
-            <Stack spacing={2}>
-              {replies.map((reply) => (
-                <Paper 
-                  key={reply.id} 
-                  variant="outlined" 
-                  sx={{ 
-                    p: 2, 
-                    borderRadius: 2,
-                    bgcolor: 'background.default',
-                    borderColor: 'divider',
-                    transition: 'all 0.2s ease-in-out',
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                      boxShadow: 2
-                    }
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 1.5 }}>
-                    <Avatar
-                      src={reply.avatarurl || undefined}
-                      alt={reply.displayname}
-                      sx={{ width: 36, height: 36 }}
+            {/* System Health */}
+            <Accordion variant="outlined" defaultExpanded={false}>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon fontSize="small" />}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  {health?.status === "ok" ? (
+                    <CheckCircleIcon color="success" fontSize="small" />
+                  ) : (
+                    <ErrorIcon color="error" fontSize="small" />
+                  )}
+                  <Typography variant="subtitle2">System Health</Typography>
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Stack spacing={1}>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography variant="caption" color="text.secondary">
+                      Uptime
+                    </Typography>
+                    <Typography variant="caption" fontWeight="medium">
+                      {formatUptime(health?.uptime)}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        mb: 0.5,
+                      }}
                     >
-                      {reply.displayname?.charAt(0) || reply.username?.charAt(0)}
-                    </Avatar>
-                    
-                    <Box sx={{ flexGrow: 1 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="subtitle2" component="div" fontWeight="bold">
-                          {reply.displayname || reply.username}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {new Date(reply.timestamp).toLocaleString()}
-                        </Typography>
-                      </Box>
-                      
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                        in {reply.guildname}
+                      <Typography variant="caption" color="text.secondary">
+                        CPU
+                      </Typography>
+                      <Typography variant="caption">
+                        {Math.round(health?.cpu_usage || 0)}%
                       </Typography>
                     </Box>
+                    <LinearProgress
+                      variant="determinate"
+                      value={health?.cpu_usage || 0}
+                      sx={{ height: 4, borderRadius: 2 }}
+                    />
                   </Box>
-
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
-                      <Typography 
-                        variant="body2" 
-                        color="text.primary" 
-                        sx={{ 
-                          pl: 1.5, 
-                          borderLeft: '3px solid',
-                          borderColor: 'text.disabled',
-                          py: 0.5,
-                          fontStyle: 'italic'
-                        }}
-                      >
-                        "{reply.usermessage}"
+                  <Box>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        mb: 0.5,
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary">
+                        Memory
                       </Typography>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <Typography 
-                        variant="body2" 
-                        color="text.primary" 
-                        sx={{ 
-                          pl: 1.5, 
-                          borderLeft: '3px solid',
-                          borderColor: 'primary.main',
-                          py: 0.5
-                        }}
-                      >
-                        {reply.botreply}
+                      <Typography variant="caption">
+                        {Math.round(health?.memory_usage || 0)}%
                       </Typography>
-                    </Grid>
-                  </Grid>
-                </Paper>
-              ))}
-            </Stack>
-          )}
-        </Paper>
+                    </Box>
+                    <LinearProgress
+                      variant="determinate"
+                      value={health?.memory_usage || 0}
+                      color="secondary"
+                      sx={{ height: 4, borderRadius: 2 }}
+                    />
+                  </Box>
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
+          </Stack>
+        </Grid>
       </Grid>
     </Box>
   );

@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
-import { formatDistanceToNow } from 'date-fns';
-import { 
-  Box, 
-  Paper, 
-  TextField, 
-  Button, 
-  Typography, 
-  Avatar, 
+import { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import { formatDistanceToNow } from "date-fns";
+import {
+  Box,
+  Paper,
+  TextField,
+  Button,
+  Typography,
+  Avatar,
   Chip,
   CircularProgress,
   List,
@@ -19,19 +19,19 @@ import {
   AppBar,
   Toolbar,
   IconButton,
-  Tooltip
-} from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import { useTheme } from '@mui/material/styles';
+  Tooltip,
+} from "@mui/material";
+import SendIcon from "@mui/icons-material/Send";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import { useTheme } from "@mui/material/styles";
 
 function Playground({ messages: propMessages, setMessages: propSetMessages }) {
   const [localMessages, setLocalMessages] = useState([]);
-  
+
   const messages = propMessages || localMessages;
   const setMessages = propSetMessages || setLocalMessages;
 
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
@@ -39,7 +39,7 @@ function Playground({ messages: propMessages, setMessages: propSetMessages }) {
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   // Handle sending a message
@@ -47,56 +47,55 @@ function Playground({ messages: propMessages, setMessages: propSetMessages }) {
     if (!inputValue.trim() || isLoading) return;
 
     const userMessage = inputValue.trim();
-    setInputValue('');
+    setInputValue("");
     setIsLoading(true);
     setError(null);
 
     // Add user message to the chat
     const userMsg = {
       id: Date.now(),
-      role: 'user',
+      role: "user",
       content: userMessage,
       timestamp: new Date().toISOString(),
-      username: 'You'
+      username: "You",
     };
-    setMessages(prev => [...prev, userMsg]);
+    setMessages((prev) => [...prev, userMsg]);
 
     try {
       // Get bot info for the playground
-      const botInfo = await axios.get('/api/bot-info');
-      const botName = botInfo.data.clientId ? 'DiscordLLMBot' : 'Bot';
-      
+      const botInfo = await axios.get("/api/bot-info");
+      const botName = botInfo.data.clientId ? "DiscordLLMBot" : "Bot";
+
       // Send message to the chat API
-      const response = await axios.post('/api/chat', {
+      const response = await axios.post("/api/chat", {
         message: userMessage,
-        username: 'You',
-        guildName: 'Playground Server'
+        username: "You",
+        guildName: "Playground Server",
       });
 
       // Add bot response to the chat
       const botMsg = {
         id: Date.now() + 1,
-        role: 'assistant',
+        role: "assistant",
         content: response.data.reply,
         timestamp: response.data.timestamp,
         username: botName,
-        usage: response.data.usage
+        usage: response.data.usage,
       };
-      setMessages(prev => [...prev, botMsg]);
-
+      setMessages((prev) => [...prev, botMsg]);
     } catch (err) {
-      console.error('Failed to get response:', err);
-      setError('Failed to get response from bot. Please try again.');
-      
+      console.error("Failed to get response:", err);
+      setError("Failed to get response from bot. Please try again.");
+
       // Add error message to the chat
       const errorMsg = {
         id: Date.now() + 1,
-        role: 'system',
-        content: 'Error: Failed to get response from bot.',
+        role: "system",
+        content: "Error: Failed to get response from bot.",
         timestamp: new Date().toISOString(),
-        username: 'System'
+        username: "System",
       };
-      setMessages(prev => [...prev, errorMsg]);
+      setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setIsLoading(false);
     }
@@ -104,7 +103,7 @@ function Playground({ messages: propMessages, setMessages: propSetMessages }) {
 
   // Handle key press (Enter to send, Shift+Enter for new line)
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
@@ -119,11 +118,11 @@ function Playground({ messages: propMessages, setMessages: propSetMessages }) {
   // Get bot avatar color based on theme
   const getAvatarColor = (role) => {
     switch (role) {
-      case 'user':
+      case "user":
         return theme.palette.primary.main;
-      case 'assistant':
+      case "assistant":
         return theme.palette.secondary.main;
-      case 'system':
+      case "system":
         return theme.palette.error.main;
       default:
         return theme.palette.grey[500];
@@ -131,52 +130,66 @@ function Playground({ messages: propMessages, setMessages: propSetMessages }) {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 110px)' }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "calc(100vh - 110px)",
+      }}
+    >
       <AppBar position="static" color="default" elevation={1}>
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Bot Playground
           </Typography>
           <Tooltip title="Clear Chat">
-            <IconButton 
-              onClick={handleClearChat}
-              color="inherit"
-              size="small"
-            >
+            <IconButton onClick={handleClearChat} color="inherit" size="small">
               <RefreshIcon />
             </IconButton>
           </Tooltip>
         </Toolbar>
       </AppBar>
 
-      <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <Box
+        sx={{
+          flex: 1,
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         {/* Messages container */}
-        <Box sx={{ 
-          flex: 1, 
-          overflow: 'auto', 
-          p: 2,
-          bgcolor: theme.palette.mode === 'light' ? 'grey.50' : 'grey.900'
-        }}>
+        <Box
+          sx={{
+            flex: 1,
+            overflow: "auto",
+            p: 2,
+            bgcolor: theme.palette.mode === "light" ? "grey.50" : "grey.900",
+          }}
+        >
           {messages.length === 0 ? (
-            <Box sx={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              height: '100%',
-              color: 'text.secondary'
-            }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+                color: "text.secondary",
+              }}
+            >
               <Typography variant="h6" gutterBottom>
                 Welcome to the Bot Playground
               </Typography>
               <Typography variant="body2" align="center">
-                Chat with the bot directly in your browser to test personas and prompts.
+                Chat with the bot directly in your browser to test personas and
+                prompts.
                 <br />
                 Your messages are not sent to any Discord servers.
               </Typography>
             </Box>
           ) : (
-            <List sx={{ width: '100%' }}>
+            <List sx={{ width: "100%" }}>
               {messages.map((message, index) => (
                 <Box key={message.id}>
                   <ListItem alignItems="flex-start">
@@ -187,37 +200,47 @@ function Playground({ messages: propMessages, setMessages: propSetMessages }) {
                     </ListItemAvatar>
                     <ListItemText
                       primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography 
-                            variant="subtitle2" 
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <Typography
+                            variant="subtitle2"
                             component="span"
-                            sx={{ 
-                              fontWeight: message.role === 'assistant' ? 'bold' : 'normal',
-                              color: message.role === 'assistant' ? 'secondary.main' : 'text.primary'
+                            sx={{
+                              fontWeight:
+                                message.role === "assistant"
+                                  ? "bold"
+                                  : "normal",
+                              color:
+                                message.role === "assistant"
+                                  ? "secondary.main"
+                                  : "text.primary",
                             }}
                           >
                             {message.username}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            {formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })}
+                            {formatDistanceToNow(new Date(message.timestamp), {
+                              addSuffix: true,
+                            })}
                           </Typography>
                         </Box>
                       }
                       secondary={
                         <Box>
-                          <Typography 
-                            variant="body1" 
+                          <Typography
+                            variant="body1"
                             component="div"
-                            sx={{ 
-                              whiteSpace: 'pre-wrap',
-                              wordBreak: 'break-word'
+                            sx={{
+                              whiteSpace: "pre-wrap",
+                              wordBreak: "break-word",
                             }}
                           >
                             {message.content}
                           </Typography>
                           {message.usage && (
                             <Box sx={{ mt: 1 }}>
-                              <Chip 
+                              <Chip
                                 label={`Tokens: ${message.usage.promptTokenCount || 0} → ${message.usage.candidatesTokenCount || 0}`}
                                 size="small"
                                 variant="outlined"
@@ -249,8 +272,8 @@ function Playground({ messages: propMessages, setMessages: propSetMessages }) {
         </Box>
 
         {/* Input area */}
-        <Paper sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end' }}>
+        <Paper sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
+          <Box sx={{ display: "flex", gap: 1, alignItems: "flex-end" }}>
             <TextField
               fullWidth
               multiline
@@ -262,10 +285,10 @@ function Playground({ messages: propMessages, setMessages: propSetMessages }) {
               disabled={isLoading}
               variant="outlined"
               size="small"
-              sx={{ 
-                '& .MuiOutlinedInput-root': {
+              sx={{
+                "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
-                }
+                },
               }}
             />
             <Button

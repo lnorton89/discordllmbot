@@ -55,3 +55,7 @@ docs/src/
 
 ## Database
 data
+
+## Build output
+dist/
+build/ 
