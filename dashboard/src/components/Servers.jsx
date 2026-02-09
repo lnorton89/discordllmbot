@@ -265,7 +265,6 @@ function Row({
                       <TableRow>
                         <TableCell>Channel Name</TableCell>
                         <TableCell align="center">Monitored</TableCell>
-                        <TableCell align="right">Actions</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -290,14 +289,6 @@ function Row({
                               onChange={() => onChannelToggle(server.id, channel.id)}
                               size="small"
                             />
-                          </TableCell>
-                          <TableCell align="right">
-                            <IconButton
-                              size="small"
-                              onClick={() => console.log(`View channel ${channel.name}`)}
-                            >
-                              <EditIcon fontSize="small" />
-                            </IconButton>
                           </TableCell>
                         </TableRow>
                       ))}
