@@ -1,151 +1,48 @@
-# Claude Development Rules for DiscordLLMBot
+# Copilot Development Rules for DiscordLLMBot
 
-## Session Context & Logging
+## 1. Critical Patterns & Code Style (DO NOT BREAK)
 
-**AT THE START OF EACH SESSION:**
-- Check `discordllmbot.log` file (recreated fresh on each bot startup)
-- Read the latest log entries to understand:
-  - Bot startup status and any initialization warnings
-  - Recent errors or failures from previous runs
-  - Discord connection issues or API problems
-  - Performance metrics (response times, retries)
-- Use logs to contextualize user requests and diagnose issues
+- **Nullish Coalescing:** Always use `??` for default values, not `||`.
+- **Function Naming:** Use verb-first names (e.g., `buildPrompt`, `getRelationship`).
+- **Message Filtering:** The initial checks in `messageCreate.js` must be `if (message.author.bot) return` and `if (!message.guild) return`.
+- **Context Slicing:** When building prompts, always remove the triggering message from the context array with `.slice(0, -1)` to prevent the bot from echoing.
+- **Persistence Layer:** All database interactions must go through `shared/storage/persistence.js`.
+- **Error Fallback:** The default user-facing error message should be simple, like "I'm having some brain lag, give me a second."
 
-**The log file is automatically:**
-- Written to at project root (`discordllmbot.log`)
-- Truncated on every bot launch (fresh start each session)
-- Includes all console output with timestamps
+---
 
-## Session Tracking (AUTOMATED)
+## 2. Guided Workflow & Session Management
 
-**START OF SESSION:**
-- Read `discordllmbot.log` for recent issues/status
-- Check if `docs/sessions/YYYY-MM-DD.md` exists for today
-- If not, create it with current date using format in `docs/sessions/2026-02-06.md`
-- Add current objectives based on user's request
-- Log this in `docs/WORKLOG.md` under current session
+This project uses a guided workflow. Instead of automating session management, you will be prompted for each step.
 
-**DURING SESSION:**
-- Track all code changes in the session file under "Changes Made" table
-- Note important decisions under "Decisions Made"
-- Document any technical discoveries under "Technical Notes"
-- Keep file up-to-date as work progresses
-- Reference relevant log entries when documenting issues
+- **To Start a Session:** I will ask you to create a session file in `docs/sessions/`.
+- **To Log Changes:** I will ask you to update the current session file with notes on changes, decisions, or discoveries.
+- **To Commit:** I will ask you to commit changes using a specific format. You should generate the `git commit` command for me to review.
 
-**END OF SESSION / WHEN CONTEXT SWITCHES:**
-- Update `docs/WORKLOG.md`:
-  - Move session from "Current Session" to "Recent Sessions" table
-  - Update task checkboxes in "Active Tasks"
-  - Add session to the history table with date, focus, and git commits
-- Create git commits for all changes using conventional format:
-  ```
-  <type>(<scope>): <subject>
-  
-  See docs/sessions/YYYY-MM-DD.md for session notes
-  ```
-  - Types: `feat`, `fix`, `docs`, `refactor`, `chore`
-  - Scope: affected module (memory, llm, personality, utils, etc.)
-  - Example: `feat(memory): add relationships.json persistence`
-  
-- Commit the session file itself:
-  ```
-  chore: session notes YYYY-MM-DD
-  ```
-
-## Architecture Decisions
-
-**WHEN ARCHITECTURAL CHANGES OCCUR:**
-- Create `docs/adr/NNN-kebab-case-title.md` (increment NNN)
-- Use ADR template in `docs/adr/001-template.md`
-- Reference ADR in git commit message: `feat: implement xyz (ADR-NNN)`
-- Link to related ADRs in "References" section
-
-## Code Style Reminders
-- Nullish coalescing: `??` (not `||`)
-- Named exports, verb-first functions
-- Error fallback: "brain lag, one sec"
-- Parentheses in lists: `- behavior`, not `- > behavior`
-
-## Critical Patterns NOT to Break
-1. **In-memory state** keyed by Discord IDs (guilds, channels, users) - *synced with DB*
-2. **Prompt engineering** as primary behavior control
-3. **Message filtering** order: bot check → guild check → mention check
-4. **Context slice**: Remove triggering message with `.slice(0, -1)` to prevent echo
-5. **File persistence**: Relationships auto-save, contexts auto-save on message add
-
-## When Adding Features
-1. Ask: Where does this fit? (memory/llm/personality/utils/core/events)
-2. Check: Does this affect the prompt? (Modify `bot/src/core/prompt.js`)
-3. Check: Is this user-specific? (Use `relationships.js` and DB)
-4. Log to file: All major operations logged via `logger`
-5. Document: Add to `docs/WORKLOG.md` and this session file
-
-
-## File Organization
+**Commit Message Format:**
 ```
-bot/
-  src/
-    index.js                           ← Main entry point (setup + event registration + internal API)
-    llm/gemini.js                      ← External API calls + retry logic
-    memory/context.js                  ← Channel-specific history + persistence
-    personality/                       ← Bot identity & user config
-    core/                              ← Business logic
-      prompt.js                       ← Builds prompts for Gemini
-      replyDecider.js                 ← Decision logic (Phase A/B)
-      responseDelay.js                ← Human-like delay calculation
-    events/                            ← Event handlers
-      clientReady.js                  ← Bot ready event handler
-      messageCreate.js                ← Message handling and reply logic
-      guildCreate.js                  ← Guild join event handler
-      guildMemberAdd.js               ← Member join event handler
-      index.js                        ← Event loader
-    utils/                             ← Helper utilities
-      profileUpdater.js               ← Sync Discord profile with config
-      sanitizeName.js                 ← Sanitize names
-shared/
-  storage/                           ← Data I/O layer (database, persistence, lock)
-  config/
-    bot.json                        ← Bot configuration (name, avatar, personality, API settings)
-    configLoader.js                 ← Config file parser and cache
-    validation.js                   ← Environment var validation
-  utils/
-    logger.js                       ← Structured logger (file + console)
+<type>(<scope>): <subject>
 
-api/                                 ← Express API for dashboard
-dashboard/                           ← Vite + React frontend
-docs/
-  sessions/                         ← Session notes (auto-tracked)
-  plans/                            ← Project plan documents
-  adr/                              ← Architecture decisions
-
-discordllmbot.log                   ← Live log file (recreated on startup)
+See docs/sessions/YYYY-MM-DD.md for session notes
 ```
+- **Types:** `feat`, `fix`, `docs`, `refactor`, `chore`
+- **Scope:** The primary module affected (e.g., `memory`, `llm`, `api`, `dashboard`).
 
-## Configuration (shared/config/bot.json)
+---
 
-**Reply Behavior:**
-```json
-{
-  "replyBehavior": {
-    "mode": "mention-only",
-    "replyProbability": 1.0,
-    "minDelayMs": 500,
-    "maxDelayMs": 3000,
-    "ignoreUsers": [],
-    "ignoreChannels": [],
-    "ignoreKeywords": [],
-    "requireMention": true,
-    "engagementMode": "passive"
-  }
-}
-```
+## 3. Architecture & Feature Development
 
-**When modifying replyBehavior:**
-- `mode`: (`"mention-only"`, `"active"`, `"passive"`, `"disabled"`) — The primary switch for reply logic.
-- `replyProbability`: (`0.0` - `1.0`) — Chance to reply when triggered.
-- `minDelayMs`, `maxDelayMs`: (`number`) — Human-like response delay range.
-- `ignoreUsers`, `ignoreChannels`, `ignoreKeywords`: (`array<string>`) — Lists for blacklisting replies.
-- `requireMention`: (`boolean`) — Forces mention requirement.
-- `engagementMode`: (`"passive"`, `"natural"`, `"aggressive"`) — Descriptive, primarily for future expanded strategies.
-- `proactiveReplyChance`: (`0.0` - `1.0`) — Random chance to reply proactively (in `"active"` mode).
+- **Architectural Changes:** Before making significant architectural changes, I will ask you to create an Architecture Decision Record (ADR) in `docs/adr/`.
+- **Adding Features:** When asked to add a new feature, consider:
+  1.  **Location:** Where does the new logic belong (`memory`, `llm`, `personality`, `core`, etc.)?
+  2.  **Prompt Impact:** Does this change how the prompt is built in `bot/src/core/prompt.js`?
+  3.  **User-Specificity:** Does this involve user-specific data? If so, use the `relationships.js` module.
+  4.  **Logging:** Ensure all major operations are logged via the `logger` utility.
+
+---
+
+## 4. Log Analysis
+
+- When asked to diagnose an issue, start by checking the `discordllmbot.log` file at the project root.
+- This log is recreated on each bot startup and contains all console output, including errors, warnings, and API metrics.
 
