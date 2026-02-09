@@ -24,6 +24,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import DnsIcon from '@mui/icons-material/Dns';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import ChatIcon from '@mui/icons-material/Chat';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 
@@ -32,12 +33,14 @@ import Settings from './components/Settings';
 import Logs from './components/Logs';
 import Servers from './components/Servers';
 import Dashboard from './components/Dashboard';
+import Playground from './components/Playground';
 
 const drawerWidth = 240;
 
 function AppContent() {
   const [health, setHealth] = useState(null);
   const [open, setOpen] = useState(true);
+  const [playgroundMessages, setPlaygroundMessages] = useState([]);
   const muiTheme = useTheme();
 
   useEffect(() => {
@@ -145,6 +148,7 @@ function AppContent() {
         <List component="nav">
           <NavItem to="/" label="Dashboard" icon={<DashboardIcon />} />
           <NavItem to="/servers" label="Servers" icon={<DnsIcon />} />
+          <NavItem to="/playground" label="Playground" icon={<ChatIcon />} />
           <NavItem to="/settings" label="Settings" icon={<SettingsIcon />} />
           <NavItem to="/logs" label="Logs" icon={<ListAltIcon />} />
         </List>
@@ -168,6 +172,7 @@ function AppContent() {
             <Route path="/" element={<Dashboard health={health} />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/servers" element={<Servers />} />
+            <Route path="/playground" element={<Playground messages={playgroundMessages} setMessages={setPlaygroundMessages} />} />
             <Route path="/logs" element={<Logs />} />
           </Routes>
         </Container>

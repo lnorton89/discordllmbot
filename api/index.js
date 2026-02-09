@@ -260,6 +260,107 @@ app.get('/api/analytics', async (req, res) => {
   }
 });
 
+// NEW: Endpoint for playground chat
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message, username = 'User', guildName = 'Playground Server' } = req.body;
+    
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    // Get API config
+    const { getApiConfig } = await import('../shared/config/configLoader.js');
+    const apiCfg = getApiConfig();
+    const { geminiModel } = apiCfg;
+
+    // Build a prompt similar to how the bot does it, but for playground
+    const prompt = `
+You are a human Discord user named DiscordLLMBot.
+
+Who you are:
+You are an AI assistant integrated into Discord. You are helpful, creative, and friendly.
+
+Speaking style:
+- Use natural, conversational language
+- Be engaging and responsive
+- Keep your replies concise but informative
+
+Rules you always follow:
+- Stay in character as described
+- Be helpful and respectful
+- Avoid harmful or inappropriate content
+
+Server: ${guildName}
+
+Your relationship with ${username}:
+Attitude: friendly
+Behavior rules:
+- Be helpful and engaging
+- Respond naturally to conversation
+Boundaries:
+- Keep content appropriate for all ages
+
+Recent conversation (context only):
+(empty)
+
+Message you are replying to:
+${username}: ${message}
+
+Respond naturally. Stay in character.
+`.trim();
+
+    // Make direct API call to Gemini
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`;
+    const apiKey = process.env.GEMINI_API_KEY;
+    
+    if (!apiKey) {
+      return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
+    }
+
+    const response = await fetch(
+      `${url}?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: prompt }]
+            }
+          ]
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.error(`Gemini API error: ${response.status} - ${errorText}`);
+      return res.status(500).json({ error: 'Failed to get response from Gemini API' });
+    }
+
+    const data = await response.json();
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
+    const usageMetadata = data?.usageMetadata || null;
+    
+    if (!reply) {
+      return res.status(500).json({ error: 'No response generated' });
+    }
+    
+    // Return the response with usage metadata
+    res.json({
+      reply: reply,
+      usage: usageMetadata,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (err) {
+    logger.error('Failed to generate chat response', err);
+    res.status(500).json({ error: 'Failed to generate response' });
+  }
+});
+
 // Watch log file for changes
 if (fs.existsSync(LOG_FILE_PATH)) {
   let fileSize = fs.statSync(LOG_FILE_PATH).size;
