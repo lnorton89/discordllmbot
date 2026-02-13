@@ -15,13 +15,13 @@ import {
   ListItemAvatar,
   ListItemText,
   Divider,
-  AppBar,
-  Toolbar,
   IconButton,
   Tooltip,
 } from "@mui/material";
-import SendIcon from "@mui/icons-material/Send";
-import RefreshIcon from "@mui/icons-material/Refresh";
+import {
+  Send as SendIcon,
+  Refresh as RefreshIcon,
+} from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 
 function Playground({ messages: propMessages, setMessages: propSetMessages }) {
@@ -129,34 +129,35 @@ function Playground({ messages: propMessages, setMessages: propSetMessages }) {
   };
 
   return (
-    <Box
-      sx={{
-        display: "flex",
+    <Box sx={{ width: "100%",
+         display: "flex",
         flexDirection: "column",
         height: "calc(100vh - 110px)",
-      }}
-    >
-      <AppBar position="static" color="default" elevation={1}>
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Bot Playground
-          </Typography>
-          <Tooltip title="Clear Chat">
-            <IconButton onClick={handleClearChat} color="inherit" size="small">
-              <RefreshIcon />
-            </IconButton>
-          </Tooltip>
-        </Toolbar>
-      </AppBar>
-
+     }}>
       <Box
         sx={{
-          flex: 1,
-          overflow: "hidden",
           display: "flex",
-          flexDirection: "column",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
         }}
       >
+        <Typography variant="h5" fontWeight="bold" color="primary">
+          Bot Playground
+        </Typography>
+        <Tooltip title="Clear Chat">
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<RefreshIcon />}
+            onClick={handleClearChat}
+          >
+            Clear Chat
+          </Button>
+        </Tooltip>
+      </Box>
+
+      <Paper elevation={2} sx={{ borderRadius: 2, overflow: "hidden", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
         {/* Messages container */}
         <Box
           sx={{
@@ -306,7 +307,7 @@ function Playground({ messages: propMessages, setMessages: propSetMessages }) {
             </Typography>
           )}
         </Paper>
-      </Box>
+      </Paper>
     </Box>
   );
 }

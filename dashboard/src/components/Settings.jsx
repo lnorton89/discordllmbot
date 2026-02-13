@@ -5,7 +5,6 @@ import {
   Paper,
   Typography,
   TextField,
-  Button,
   Select,
   MenuItem,
   FormControl,
@@ -18,10 +17,23 @@ import {
   Alert,
   IconButton,
   Slider,
+  Tabs,
+  Tab,
+  Button,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
+  Save as SaveIcon,
+  Person as PersonIcon,
+  Api as ApiIcon,
+  Storage as StorageIcon,
+  Chat as ChatIcon,
+  Visibility as VisibilityIcon,
+  KeyboardArrowDown as KeyboardArrowDownIcon,
 } from "@mui/icons-material";
 
 function Settings() {
@@ -35,6 +47,7 @@ function Settings() {
   });
   const [models, setModels] = useState([]);
   const [isFetchingModels, setIsFetchingModels] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
   
   // Debounce timer reference
   const debounceTimer = useRef(null);
@@ -208,8 +221,12 @@ function Settings() {
   if (!config)
     return <Alert severity="error">Failed to load configuration.</Alert>;
 
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+
   return (
-    <Box sx={{ width: "100%", maxWidth: 800 }}>
+    <Box sx={{ width: "100%" }}>
       <Box
         sx={{
           display: "flex",
@@ -231,433 +248,568 @@ function Settings() {
         )}
       </Box>
 
-      <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
-        <Typography variant="h6" gutterBottom color="primary">
-          Bot Persona
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              fullWidth
-              label="Bot Name"
-              value={config.bot.name}
-              onChange={(e) => updateNested("bot.name", e.target.value)}
-              variant="outlined"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              fullWidth
-              label="Username"
-              value={config.bot.username}
-              onChange={(e) => updateNested("bot.username", e.target.value)}
-              variant="outlined"
-            />
-          </Grid>
-          <Grid size={{ xs: 12 }}>
-            <TextField
-              fullWidth
-              label="Description"
-              multiline
-              rows={3}
-              value={config.bot.description}
-              onChange={(e) => updateNested("bot.description", e.target.value)}
-              variant="outlined"
-            />
-          </Grid>
-          <Grid size={{ xs: 12 }}>
-            <Typography variant="subtitle2" gutterBottom>
-              Speaking Style
-            </Typography>
-            {config.bot.speakingStyle.map((style, index) => (
-              <Box key={index} sx={{ display: "flex", gap: 1, mb: 1 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={style}
-                  onChange={(e) =>
-                    updateArrayItem("bot.speakingStyle", index, e.target.value)
-                  }
-                  variant="outlined"
-                />
-                <IconButton
-                  color="error"
-                  onClick={() => removeArrayItem("bot.speakingStyle", style)}
-                >
-                  <DeleteIcon />
-                </IconButton>
+      <Paper elevation={2} sx={{ borderRadius: 2, overflow: "hidden" }}>
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{
+            borderBottom: 1,
+            borderColor: "divider",
+            backgroundColor: "background.paper",
+          }}
+        >
+          <Tab 
+            label={
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <PersonIcon fontSize="small" />
+                <span>Bot Persona</span>
               </Box>
-            ))}
-            <Button
-              startIcon={<AddIcon />}
-              size="small"
-              onClick={() => addArrayItem("bot.speakingStyle")}
-            >
-              Add Style
-            </Button>
-          </Grid>
-          <Grid size={{ xs: 12 }}>
-            <Typography variant="subtitle2" gutterBottom>
-              Global Rules
-            </Typography>
-            {config.bot.globalRules.map((rule, index) => (
-              <Box key={index} sx={{ display: "flex", gap: 1, mb: 1 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  value={rule}
-                  onChange={(e) =>
-                    updateArrayItem("bot.globalRules", index, e.target.value)
-                  }
-                  variant="outlined"
-                />
-                <IconButton
-                  color="error"
-                  onClick={() => removeArrayItem("bot.globalRules", rule)}
-                >
-                  <DeleteIcon />
-                </IconButton>
+            } 
+          />
+          <Tab 
+            label={
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <ApiIcon fontSize="small" />
+                <span>API</span>
               </Box>
-            ))}
-            <Button
-              startIcon={<AddIcon />}
-              size="small"
-              onClick={() => addArrayItem("bot.globalRules")}
-            >
-              Add Rule
-            </Button>
-          </Grid>
-        </Grid>
-      </Paper>
+            } 
+          />
+          <Tab 
+            label={
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <StorageIcon fontSize="small" />
+                <span>Memory</span>
+              </Box>
+            } 
+          />
+          <Tab 
+            label={
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <ChatIcon fontSize="small" />
+                <span>Reply Behavior</span>
+              </Box>
+            } 
+          />
+          <Tab 
+            label={
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <VisibilityIcon fontSize="small" />
+                <span>Logger</span>
+              </Box>
+            } 
+          />
+        </Tabs>
 
-      <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
-        <Typography variant="h6" gutterBottom color="primary">
-          API Settings
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <FormControl fullWidth>
-              <InputLabel>Provider</InputLabel>
-              <Select
-                value={config.api.provider || "gemini"}
-                label="Provider"
-                onChange={async (e) => {
-                  const newProvider = e.target.value;
-                  updateNested("api.provider", newProvider);
-                  // Reset model selection when switching providers
-                  if (newProvider === "gemini") {
-                    updateNested("api.geminiModel", "gemini-2.0-flash");
-                    await fetchModels(newProvider); // Fetch models for the new provider
-                  } else if (newProvider === "ollama") {
-                    // Fetch models first, then set the first available model
-                    const fetchedModels = await fetchModels(newProvider);
-                    if (fetchedModels && fetchedModels.length > 0) {
-                      updateNested("api.ollamaModel", fetchedModels[0]);
-                    } else {
-                      // If no models are available, set to empty string
-                      updateNested("api.ollamaModel", "");
-                    }
-                  } else {
-                    await fetchModels(newProvider); // Fetch models for the new provider
-                  }
+        <Box sx={{ p: 3 }}>
+          {/* Bot Persona Tab */}
+          {activeTab === 0 && (
+            <>
+              <Typography 
+                variant="h6" 
+                gutterBottom 
+                component="div"
+                sx={{ 
+                  fontSize: "0.9rem", 
+                  color: "text.secondary",
+                  mb: 2 
                 }}
               >
-                <MenuItem value="gemini">Google Gemini</MenuItem>
-                <MenuItem value="ollama">Ollama (Local)</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            {config.api.provider === "ollama" ? (
-              <FormControl fullWidth disabled={isFetchingModels}>
-                <InputLabel>Ollama Model</InputLabel>
-                <Select
-                  value={
-                    models.includes(config.api.ollamaModel)
-                      ? config.api.ollamaModel
-                      : ""
-                  }
-                  label="Ollama Model"
-                  onChange={(e) =>
-                    updateNested("api.ollamaModel", e.target.value)
-                  }
-                >
-                  {isFetchingModels ? (
-                    <MenuItem value="">
-                      <CircularProgress size={20} />
-                    </MenuItem>
-                  ) : models.length === 0 ? (
-                    <MenuItem value="" disabled>
-                      No models available
-                    </MenuItem>
-                  ) : (
-                    models.map((m) => (
-                      <MenuItem key={m} value={m}>
-                        {m}
-                      </MenuItem>
-                    ))
-                  )}
-                </Select>
-              </FormControl>
-            ) : (
-              <FormControl fullWidth disabled={isFetchingModels}>
-                <InputLabel>Gemini Model</InputLabel>
-                <Select
-                  value={
-                    models.includes(config.api.geminiModel)
-                      ? config.api.geminiModel
-                      : ""
-                  }
-                  label="Gemini Model"
-                  onChange={(e) =>
-                    updateNested("api.geminiModel", e.target.value)
-                  }
-                >
-                  {isFetchingModels ? (
-                    <MenuItem value="">
-                      <CircularProgress size={20} />
-                    </MenuItem>
-                  ) : models.length === 0 ? (
-                    <MenuItem value="" disabled>
-                      No models available
-                    </MenuItem>
-                  ) : (
-                    models.map((m) => (
-                      <MenuItem key={m} value={m}>
-                        {m}
-                      </MenuItem>
-                    ))
-                  )}
-                </Select>
-              </FormControl>
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              fullWidth
-              type="number"
-              label="Retry Attempts"
-              value={config.api.retryAttempts}
-              onChange={(e) =>
-                updateNested("api.retryAttempts", parseInt(e.target.value))
-              }
-              variant="outlined"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              fullWidth
-              type="number"
-              label="Retry Backoff (ms)"
-              value={config.api.retryBackoffMs}
-              onChange={(e) =>
-                updateNested("api.retryBackoffMs", parseInt(e.target.value))
-              }
-              variant="outlined"
-            />
-          </Grid>
-        </Grid>
-      </Paper>
-
-      <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
-        <Typography variant="h6" gutterBottom color="primary">
-          Memory Settings
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              fullWidth
-              type="number"
-              label="Max Memory (Messages)"
-              value={config.memory.maxMessages}
-              onChange={(e) =>
-                updateNested("memory.maxMessages", parseInt(e.target.value))
-              }
-              variant="outlined"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              fullWidth
-              type="number"
-              label="Max Message Age (Days)"
-              value={config.memory.maxMessageAgeDays}
-              onChange={(e) =>
-                updateNested("memory.maxMessageAgeDays", parseInt(e.target.value))
-              }
-              variant="outlined"
-            />
-          </Grid>
-        </Grid>
-      </Paper>
-
-      <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
-        <Typography variant="h6" gutterBottom color="primary">
-          Reply Behavior
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <FormControl fullWidth>
-              <InputLabel>Mode</InputLabel>
-              <Select
-                value={config.replyBehavior.mode}
-                label="Mode"
-                onChange={(e) =>
-                  updateNested("replyBehavior.mode", e.target.value)
-                }
-              >
-                <MenuItem value="mention-only">Mention Only</MenuItem>
-                <MenuItem value="active">Active</MenuItem>
-                <MenuItem value="passive">Passive</MenuItem>
-                <MenuItem value="disabled">Disabled</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <Box sx={{ px: 1 }}>
-              <Typography gutterBottom variant="caption">
-                Reply Probability: {config.replyBehavior.replyProbability}
+                Bot Persona
               </Typography>
-              <Slider
-                value={config.replyBehavior.replyProbability}
-                min={0}
-                max={1}
-                step={0.1}
-                valueLabelDisplay="auto"
-                onChange={(e, val) =>
-                  updateNested("replyBehavior.replyProbability", val)
-                }
-              />
-            </Box>
-          </Grid>
-          <Grid size={{ xs: 12 }}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={config.replyBehavior.requireMention}
-                  onChange={(e) =>
-                    updateNested(
-                      "replyBehavior.requireMention",
-                      e.target.checked,
-                    )
-                  }
-                  color="primary"
-                />
-              }
-              label="Require Mention (Always)"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              fullWidth
-              type="number"
-              label="Min Delay (ms)"
-              value={config.replyBehavior.minDelayMs}
-              onChange={(e) =>
-                updateNested("replyBehavior.minDelayMs", parseInt(e.target.value))
-              }
-              variant="outlined"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              fullWidth
-              type="number"
-              label="Max Delay (ms)"
-              value={config.replyBehavior.maxDelayMs}
-              onChange={(e) =>
-                updateNested("replyBehavior.maxDelayMs", parseInt(e.target.value))
-              }
-              variant="outlined"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <FormControl fullWidth>
-              <InputLabel>Engagement Mode</InputLabel>
-              <Select
-                value={config.replyBehavior.engagementMode}
-                label="Engagement Mode"
-                onChange={(e) =>
-                  updateNested("replyBehavior.engagementMode", e.target.value)
-                }
-              >
-                <MenuItem value="passive">Passive</MenuItem>
-                <MenuItem value="active">Active</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <Box sx={{ px: 1 }}>
-              <Typography gutterBottom variant="caption">
-                Proactive Reply Chance: {(config.replyBehavior.proactiveReplyChance * 100).toFixed(0)}%
-              </Typography>
-              <Slider
-                value={config.replyBehavior.proactiveReplyChance}
-                min={0}
-                max={1}
-                step={0.01}
-                valueLabelDisplay="auto"
-                onChange={(e, val) =>
-                  updateNested("replyBehavior.proactiveReplyChance", val)
-                }
-              />
-            </Box>
-          </Grid>
-        </Grid>
-      </Paper>
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    fullWidth
+                    label="Bot Name"
+                    value={config.bot.name}
+                    onChange={(e) => updateNested("bot.name", e.target.value)}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    fullWidth
+                    label="Username"
+                    value={config.bot.username}
+                    onChange={(e) => updateNested("bot.username", e.target.value)}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <TextField
+                    fullWidth
+                    label="Description"
+                    multiline
+                    rows={3}
+                    value={config.bot.description}
+                    onChange={(e) => updateNested("bot.description", e.target.value)}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <Accordion defaultExpanded>
+                    <AccordionSummary
+                      expandIcon={<KeyboardArrowDownIcon />}
+                      sx={{ pl: 0 }}
+                    >
+                      <Typography variant="subtitle2">
+                        Speaking Style
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ pl: 0, pr: 0 }}>
+                      {config.bot.speakingStyle.map((style, index) => (
+                        <Box key={index} sx={{ display: "flex", gap: 1, mb: 1 }}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            value={style}
+                            onChange={(e) =>
+                              updateArrayItem("bot.speakingStyle", index, e.target.value)
+                            }
+                            variant="outlined"
+                          />
+                          <IconButton
+                            color="error"
+                            onClick={() => removeArrayItem("bot.speakingStyle", index)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      ))}
+                      <Button
+                        startIcon={<AddIcon />}
+                        size="small"
+                        onClick={() => addArrayItem("bot.speakingStyle")}
+                      >
+                        Add Style
+                      </Button>
+                    </AccordionDetails>
+                  </Accordion>
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <Accordion>
+                    <AccordionSummary
+                      expandIcon={<KeyboardArrowDownIcon />}
+                      sx={{ pl: 0 }}
+                    >
+                      <Typography variant="subtitle2">
+                        Global Rules
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ pl: 0, pr: 0 }}>
+                      {config.bot.globalRules.map((rule, index) => (
+                        <Box key={index} sx={{ display: "flex", gap: 1, mb: 1 }}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            value={rule}
+                            onChange={(e) =>
+                              updateArrayItem("bot.globalRules", index, e.target.value)
+                            }
+                            variant="outlined"
+                          />
+                          <IconButton
+                            color="error"
+                            onClick={() => removeArrayItem("bot.globalRules", index)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      ))}
+                      <Button
+                        startIcon={<AddIcon />}
+                        size="small"
+                        onClick={() => addArrayItem("bot.globalRules")}
+                      >
+                        Add Rule
+                      </Button>
+                    </AccordionDetails>
+                  </Accordion>
+                </Grid>
+              </Grid>
+            </>
+          )}
 
-      <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
-        <Typography variant="h6" gutterBottom color="primary">
-          Logger Settings
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              fullWidth
-              type="number"
-              label="Max Log Lines"
-              value={config.logger.maxLogLines}
-              onChange={(e) =>
-                updateNested("logger.maxLogLines", parseInt(e.target.value))
-              }
-              variant="outlined"
-            />
-          </Grid>
-          <Grid size={{ xs: 12 }}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={config.logger.logReplyDecisions}
-                  onChange={(e) =>
-                    updateNested(
-                      "logger.logReplyDecisions",
-                      e.target.checked,
-                    )
-                  }
-                  color="primary"
-                />
-              }
-              label="Log Reply Decisions"
-            />
-          </Grid>
-          <Grid size={{ xs: 12 }}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={config.logger.logSql}
-                  onChange={(e) =>
-                    updateNested(
-                      "logger.logSql",
-                      e.target.checked,
-                    )
-                  }
-                  color="primary"
-                />
-              }
-              label="Log SQL Queries"
-            />
-          </Grid>
-        </Grid>
+          {/* API Settings Tab */}
+          {activeTab === 1 && (
+            <>
+              <Typography 
+                variant="h6" 
+                gutterBottom 
+                component="div"
+                sx={{ 
+                  fontSize: "0.9rem", 
+                  color: "text.secondary",
+                  mb: 2 
+                }}
+              >
+                API Settings
+              </Typography>
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Provider</InputLabel>
+                    <Select
+                      value={config.api.provider || "gemini"}
+                      label="Provider"
+                      onChange={async (e) => {
+                        const newProvider = e.target.value;
+                        updateNested("api.provider", newProvider);
+                        // Reset model selection when switching providers
+                        if (newProvider === "gemini") {
+                          updateNested("api.geminiModel", "gemini-2.0-flash");
+                          await fetchModels(newProvider); // Fetch models for the new provider
+                        } else if (newProvider === "ollama") {
+                          // Fetch models first, then set the first available model
+                          const fetchedModels = await fetchModels(newProvider);
+                          if (fetchedModels && fetchedModels.length > 0) {
+                            updateNested("api.ollamaModel", fetchedModels[0]);
+                          } else {
+                            // If no models are available, set to empty string
+                            updateNested("api.ollamaModel", "");
+                          }
+                        } else {
+                          await fetchModels(newProvider); // Fetch models for the new provider
+                        }
+                      }}
+                    >
+                      <MenuItem value="gemini">Google Gemini</MenuItem>
+                      <MenuItem value="ollama">Ollama (Local)</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  {config.api.provider === "ollama" ? (
+                    <FormControl fullWidth disabled={isFetchingModels}>
+                      <InputLabel>Ollama Model</InputLabel>
+                      <Select
+                        value={
+                          models.includes(config.api.ollamaModel)
+                            ? config.api.ollamaModel
+                            : ""
+                        }
+                        label="Ollama Model"
+                        onChange={(e) =>
+                          updateNested("api.ollamaModel", e.target.value)
+                        }
+                      >
+                        {isFetchingModels ? (
+                          <MenuItem value="">
+                            <CircularProgress size={20} />
+                          </MenuItem>
+                        ) : models.length === 0 ? (
+                          <MenuItem value="" disabled>
+                            No models available
+                          </MenuItem>
+                        ) : (
+                          models.map((m) => (
+                            <MenuItem key={m} value={m}>
+                              {m}
+                            </MenuItem>
+                          ))
+                        )}
+                      </Select>
+                    </FormControl>
+                  ) : (
+                    <FormControl fullWidth disabled={isFetchingModels}>
+                      <InputLabel>Gemini Model</InputLabel>
+                      <Select
+                        value={
+                          models.includes(config.api.geminiModel)
+                            ? config.api.geminiModel
+                            : ""
+                        }
+                        label="Gemini Model"
+                        onChange={(e) =>
+                          updateNested("api.geminiModel", e.target.value)
+                        }
+                      >
+                        {isFetchingModels ? (
+                          <MenuItem value="">
+                            <CircularProgress size={20} />
+                          </MenuItem>
+                        ) : models.length === 0 ? (
+                          <MenuItem value="" disabled>
+                            No models available
+                          </MenuItem>
+                        ) : (
+                          models.map((m) => (
+                            <MenuItem key={m} value={m}>
+                              {m}
+                            </MenuItem>
+                          ))
+                        )}
+                      </Select>
+                    </FormControl>
+                  )}
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Retry Attempts"
+                    value={config.api.retryAttempts}
+                    onChange={(e) =>
+                      updateNested("api.retryAttempts", parseInt(e.target.value))
+                    }
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Retry Backoff (ms)"
+                    value={config.api.retryBackoffMs}
+                    onChange={(e) =>
+                      updateNested("api.retryBackoffMs", parseInt(e.target.value))
+                    }
+                    variant="outlined"
+                  />
+                </Grid>
+              </Grid>
+            </>
+          )}
+
+          {/* Memory Settings Tab */}
+          {activeTab === 2 && (
+            <>
+              <Typography 
+                variant="h6" 
+                gutterBottom 
+                component="div"
+                sx={{ 
+                  fontSize: "0.9rem", 
+                  color: "text.secondary",
+                  mb: 2 
+                }}
+              >
+                Memory Settings
+              </Typography>
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Max Memory (Messages)"
+                    value={config.memory.maxMessages}
+                    onChange={(e) =>
+                      updateNested("memory.maxMessages", parseInt(e.target.value))
+                    }
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Max Message Age (Days)"
+                    value={config.memory.maxMessageAgeDays}
+                    onChange={(e) =>
+                      updateNested("memory.maxMessageAgeDays", parseInt(e.target.value))
+                    }
+                    variant="outlined"
+                  />
+                </Grid>
+              </Grid>
+            </>
+          )}
+
+          {/* Reply Behavior Tab */}
+          {activeTab === 3 && (
+            <>
+              <Typography 
+                variant="h6" 
+                gutterBottom 
+                component="div"
+                sx={{ 
+                  fontSize: "0.9rem", 
+                  color: "text.secondary",
+                  mb: 2 
+                }}
+              >
+                Reply Behavior
+              </Typography>
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Mode</InputLabel>
+                    <Select
+                      value={config.replyBehavior.mode}
+                      label="Mode"
+                      onChange={(e) =>
+                        updateNested("replyBehavior.mode", e.target.value)
+                      }
+                    >
+                      <MenuItem value="mention-only">Mention Only</MenuItem>
+                      <MenuItem value="active">Active</MenuItem>
+                      <MenuItem value="passive">Passive</MenuItem>
+                      <MenuItem value="disabled">Disabled</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Box sx={{ px: 1 }}>
+                    <Typography gutterBottom variant="caption">
+                      Reply Probability: {config.replyBehavior.replyProbability}
+                    </Typography>
+                    <Slider
+                      value={config.replyBehavior.replyProbability}
+                      min={0}
+                      max={1}
+                      step={0.1}
+                      valueLabelDisplay="auto"
+                      onChange={(e, val) =>
+                        updateNested("replyBehavior.replyProbability", val)
+                      }
+                    />
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={config.replyBehavior.requireMention}
+                        onChange={(e) =>
+                          updateNested(
+                            "replyBehavior.requireMention",
+                            e.target.checked,
+                          )
+                        }
+                        color="primary"
+                      />
+                    }
+                    label="Require Mention (Always)"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Min Delay (ms)"
+                    value={config.replyBehavior.minDelayMs}
+                    onChange={(e) =>
+                      updateNested("replyBehavior.minDelayMs", parseInt(e.target.value))
+                    }
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Max Delay (ms)"
+                    value={config.replyBehavior.maxDelayMs}
+                    onChange={(e) =>
+                      updateNested("replyBehavior.maxDelayMs", parseInt(e.target.value))
+                    }
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Engagement Mode</InputLabel>
+                    <Select
+                      value={config.replyBehavior.engagementMode}
+                      label="Engagement Mode"
+                      onChange={(e) =>
+                        updateNested("replyBehavior.engagementMode", e.target.value)
+                      }
+                    >
+                      <MenuItem value="passive">Passive</MenuItem>
+                      <MenuItem value="active">Active</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Box sx={{ px: 1 }}>
+                    <Typography gutterBottom variant="caption">
+                      Proactive Reply Chance: {(config.replyBehavior.proactiveReplyChance * 100).toFixed(0)}%
+                    </Typography>
+                    <Slider
+                      value={config.replyBehavior.proactiveReplyChance}
+                      min={0}
+                      max={1}
+                      step={0.01}
+                      valueLabelDisplay="auto"
+                      onChange={(e, val) =>
+                        updateNested("replyBehavior.proactiveReplyChance", val)
+                      }
+                    />
+                  </Box>
+                </Grid>
+              </Grid>
+            </>
+          )}
+
+          {/* Logger Settings Tab */}
+          {activeTab === 4 && (
+            <>
+              <Typography 
+                variant="h6" 
+                gutterBottom 
+                component="div"
+                sx={{ 
+                  fontSize: "0.9rem", 
+                  color: "text.secondary",
+                  mb: 2 
+                }}
+              >
+                Logger Settings
+              </Typography>
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Max Log Lines"
+                    value={config.logger.maxLogLines}
+                    onChange={(e) =>
+                      updateNested("logger.maxLogLines", parseInt(e.target.value))
+                    }
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={config.logger.logReplyDecisions}
+                        onChange={(e) =>
+                          updateNested(
+                            "logger.logReplyDecisions",
+                            e.target.checked,
+                          )
+                        }
+                        color="primary"
+                      />
+                    }
+                    label="Log Reply Decisions"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={config.logger.logSql}
+                        onChange={(e) =>
+                          updateNested(
+                            "logger.logSql",
+                            e.target.checked,
+                          )
+                        }
+                        color="primary"
+                      />
+                    }
+                    label="Log SQL Queries"
+                  />
+                </Grid>
+              </Grid>
+            </>
+          )}
+        </Box>
       </Paper>
 
       <Snackbar
