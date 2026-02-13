@@ -35,9 +35,21 @@ DiscordLLMBot is a lightweight Discord bot that uses Google's Gemini (Generative
   - `replyBehavior` in `bot.json` controls how the bot decides whether to reply (modes: `mention-only`, `active`, `passive`, `disabled`), `replyProbability`, delay window, ignore lists, and keywords.
   - Strategy pattern (`bot/src/strategies/replyStrategies.js`) provides `MentionOnly`, `Passive`, `Active`, and `Disabled` strategies.
 
-- **Web Dashboard**: A React-based dashboard (running on port 5173 by default) allows you to view logs, manage relationships, and configure the bot.
+- **Web Dashboard**: A React-based dashboard (running on port 5173 by default) allows you to view logs, manage relationships, and configure the bot. The dashboard features:
+  - **Settings Page**: Comprehensive configuration with tabbed interface for Bot Persona, API, Memory, Reply Behavior, and Logger settings. Includes auto-save functionality with debouncing to prevent API spam, and accordion sections for speaking style and global rules.
+  - **Servers Page**: View and manage servers the bot is connected to, with per-user relationship management and channel monitoring controls
+  - **Logs Page**: Real-time log viewing with filtering options, console-like appearance, and collapsible detail sections
+  - **Playground Page**: Test bot responses in a chat interface without affecting Discord servers
+  - **Responsive Design**: Modern dark-themed UI with consistent styling, intuitive navigation, and Material-UI components
 
 - **Multi-provider LLM support**: `bot/src/llm/index.js` provides a unified interface for both Google's Gemini API and local Ollama models, with configurable `api.provider`, `api.geminiModel`, and `api.ollamaModel`.
+
+- **Advanced Configuration Options**: The dashboard provides access to all bot configuration options including:
+  - Bot Persona customization (name, username, description, speaking style, global rules)
+  - API settings (provider selection, model configuration, retry settings)
+  - Memory settings (message limits, age limits)
+  - Reply behavior controls (modes, probabilities, delays, engagement options)
+  - Logger configuration (log levels, output options)
 
  
 
@@ -53,7 +65,9 @@ Important fields:
   - `globalRules`: list of rules the bot should always follow
   - `defaultRelationship`: used when initializing per-user entries on guild join
 
-- `memory.maxMessages`: how many messages to keep per-channel in memory (and DB)
+- `memory`: memory management settings
+  - `maxMessages`: how many messages to keep per-channel in memory (and DB)
+  - `maxMessageAgeDays`: maximum age of messages to keep in memory (in days)
 
 - `api`:
   - `provider`: (`"gemini"` or `"ollama"`) — The LLM provider to use for generating replies
@@ -74,9 +88,13 @@ Important fields:
   - `ignoreChannels`: (`array<string>`) — A list of Discord channel IDs where the bot should remain silent.
   - `ignoreKeywords`: (`array<string>`) — A list of keywords or phrases (case-insensitive) that, if present in a message, will prevent the bot from replying.
   - `requireMention`: (`boolean`) — If `true`, the bot *must* be @mentioned to consider replying, even if `mode` is set to `"active"`.
+  - `engagementMode`: (`"passive"` or `"active"`) — Controls how actively the bot engages in conversations
   - `proactiveReplyChance`: (`0.0` - `1.0`) — (Only applies in `"active"` mode) The random chance the bot will proactively reply to a message even if no explicit mention or question is present. A value of `0.05` means a 5% chance.
 
-- `logger.maxLogLines`: integer, how many lines to keep from previous log when starting
+- `logger`: logging configuration
+  - `maxLogLines`: integer, how many lines to keep from previous log when starting
+  - `logReplyDecisions`: boolean, whether to log reply decision-making process
+  - `logSql`: boolean, whether to log SQL queries
 
 See [shared/config/bot.json.defaults](shared/config/bot.json.defaults) for default values.
 
@@ -182,11 +200,10 @@ Suggested next steps you can implement:
 - **Admin commands**: add Discord commands for admins to inspect and edit relationships in-chat (eg. `!rel set <userId> <json>`).
 - **More advanced reply strategies**: add context-aware scoring, conversation topic detection, and rate-limiting heuristics.
 - **Tests**: add unit tests for `replyDecider`, `responseDelay`, and `prompt` to validate behavior.
-- **Improve Dashboard**: Add more visualizations and controls to the web dashboard
-        
-- Admin commands: add Discord commands for admins to inspect and edit relationships in-chat (eg. `!rel set <userId> <json>`).
-- More advanced reply strategies: add context-aware scoring, conversation topic detection, and rate-limiting heuristics.
-- Tests: add unit tests for `replyDecider`, `responseDelay`, and `prompt` to validate behavior.
+- **Enhanced Dashboard**: Add more visualizations and analytics to the web dashboard, including activity charts, response statistics, and server insights
+- **Additional Configuration Options**: Implement more granular controls for bot behavior through the dashboard interface
+- **User Permissions**: Add role-based access controls to restrict certain dashboard features to specific users
+- **Export/Import Configurations**: Allow exporting and importing bot configurations for backup or transfer purposes
 
 ---
 
