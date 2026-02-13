@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
   Box,
@@ -20,7 +20,6 @@ import {
   Slider,
 } from "@mui/material";
 import {
-  Save as SaveIcon,
   Add as AddIcon,
   Delete as DeleteIcon,
 } from "@mui/icons-material";
@@ -36,6 +35,9 @@ function Settings() {
   });
   const [models, setModels] = useState([]);
   const [isFetchingModels, setIsFetchingModels] = useState(false);
+  
+  // Debounce timer reference
+  const debounceTimer = useRef(null);
 
   useEffect(() => {
     fetchConfig().then(initialConfig => {
@@ -43,6 +45,13 @@ function Settings() {
         fetchModels(initialConfig.api?.provider || "gemini");
       }
     });
+    
+    // Cleanup on unmount
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
   }, []);
 
   const fetchConfig = async () => {
@@ -65,12 +74,13 @@ function Settings() {
 
   const fetchModels = async (explicitProvider) => {
     const providerToFetch = explicitProvider || config?.api?.provider;
-    if (!providerToFetch) return; // Don't fetch if provider isn't set yet
+    if (!providerToFetch) return []; // Don't fetch if provider isn't set yet
 
     setIsFetchingModels(true);
     try {
       const res = await axios.get("/api/models", { params: { provider: providerToFetch } });
       setModels(res.data);
+      return res.data; // Return the models
     } catch (err) {
       console.error("Failed to fetch models", err);
       setMessage({
@@ -80,15 +90,16 @@ function Settings() {
       });
       // Don't set a fallback, let the user know there's an issue.
       setModels([]);
+      return []; // Return empty array on error
     } finally {
       setIsFetchingModels(false);
     }
   };
 
-  const handleSave = async () => {
+  const saveConfig = async (newConfig) => {
     setSaving(true);
     try {
-      await axios.post("/api/config", config);
+      await axios.post("/api/config", newConfig);
       setMessage({
         open: true,
         text: "Settings saved successfully!",
@@ -106,6 +117,19 @@ function Settings() {
     }
   };
 
+  // Debounced save function to prevent spamming the server
+  const debouncedSave = (newConfig) => {
+    // Clear the existing timer if there is one
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    
+    // Set a new timer to save after 1000ms (1 second)
+    debounceTimer.current = setTimeout(() => {
+      saveConfig(newConfig);
+    }, 1000);
+  };
+
   const updateNested = (path, value) => {
     setConfig((prev) => {
       const newConfig = { ...prev };
@@ -118,6 +142,10 @@ function Settings() {
         current = current[key];
       }
       current[lastKey] = value;
+      
+      // Trigger debounced save
+      debouncedSave(newConfig);
+      
       return newConfig;
     });
   };
@@ -163,6 +191,10 @@ function Settings() {
       const newArray = [...current[lastKey]];
       newArray[index] = value;
       current[lastKey] = newArray;
+      
+      // Trigger debounced save
+      debouncedSave(newConfig);
+      
       return newConfig;
     });
   };
@@ -189,20 +221,14 @@ function Settings() {
         <Typography variant="h5" fontWeight="bold" color="primary">
           Configuration
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={
-            saving ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : (
-              <SaveIcon />
-            )
-          }
-          onClick={handleSave}
-          disabled={saving}
-        >
-          {saving ? "Saving..." : "Save Changes"}
-        </Button>
+        {saving && (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <CircularProgress size={20} />
+            <Typography variant="body2" color="textSecondary">
+              Saving...
+            </Typography>
+          </Box>
+        )}
       </Box>
 
       <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
@@ -306,7 +332,7 @@ function Settings() {
 
       <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
         <Typography variant="h6" gutterBottom color="primary">
-          API & Memory
+          API Settings
         </Typography>
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -321,10 +347,19 @@ function Settings() {
                   // Reset model selection when switching providers
                   if (newProvider === "gemini") {
                     updateNested("api.geminiModel", "gemini-2.0-flash");
+                    await fetchModels(newProvider); // Fetch models for the new provider
                   } else if (newProvider === "ollama") {
-                    updateNested("api.ollamaModel", "llama3.2");
+                    // Fetch models first, then set the first available model
+                    const fetchedModels = await fetchModels(newProvider);
+                    if (fetchedModels && fetchedModels.length > 0) {
+                      updateNested("api.ollamaModel", fetchedModels[0]);
+                    } else {
+                      // If no models are available, set to empty string
+                      updateNested("api.ollamaModel", "");
+                    }
+                  } else {
+                    await fetchModels(newProvider); // Fetch models for the new provider
                   }
-                  await fetchModels(newProvider); // Fetch models for the new provider
                 }}
               >
                 <MenuItem value="gemini">Google Gemini</MenuItem>
@@ -350,6 +385,10 @@ function Settings() {
                   {isFetchingModels ? (
                     <MenuItem value="">
                       <CircularProgress size={20} />
+                    </MenuItem>
+                  ) : models.length === 0 ? (
+                    <MenuItem value="" disabled>
+                      No models available
                     </MenuItem>
                   ) : (
                     models.map((m) => (
@@ -378,6 +417,10 @@ function Settings() {
                     <MenuItem value="">
                       <CircularProgress size={20} />
                     </MenuItem>
+                  ) : models.length === 0 ? (
+                    <MenuItem value="" disabled>
+                      No models available
+                    </MenuItem>
                   ) : (
                     models.map((m) => (
                       <MenuItem key={m} value={m}>
@@ -393,10 +436,54 @@ function Settings() {
             <TextField
               fullWidth
               type="number"
+              label="Retry Attempts"
+              value={config.api.retryAttempts}
+              onChange={(e) =>
+                updateNested("api.retryAttempts", parseInt(e.target.value))
+              }
+              variant="outlined"
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              fullWidth
+              type="number"
+              label="Retry Backoff (ms)"
+              value={config.api.retryBackoffMs}
+              onChange={(e) =>
+                updateNested("api.retryBackoffMs", parseInt(e.target.value))
+              }
+              variant="outlined"
+            />
+          </Grid>
+        </Grid>
+      </Paper>
+
+      <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
+        <Typography variant="h6" gutterBottom color="primary">
+          Memory Settings
+        </Typography>
+        <Grid container spacing={3}>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              fullWidth
+              type="number"
               label="Max Memory (Messages)"
               value={config.memory.maxMessages}
               onChange={(e) =>
                 updateNested("memory.maxMessages", parseInt(e.target.value))
+              }
+              variant="outlined"
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              fullWidth
+              type="number"
+              label="Max Message Age (Days)"
+              value={config.memory.maxMessageAgeDays}
+              onChange={(e) =>
+                updateNested("memory.maxMessageAgeDays", parseInt(e.target.value))
               }
               variant="outlined"
             />
@@ -458,6 +545,116 @@ function Settings() {
                 />
               }
               label="Require Mention (Always)"
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              fullWidth
+              type="number"
+              label="Min Delay (ms)"
+              value={config.replyBehavior.minDelayMs}
+              onChange={(e) =>
+                updateNested("replyBehavior.minDelayMs", parseInt(e.target.value))
+              }
+              variant="outlined"
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              fullWidth
+              type="number"
+              label="Max Delay (ms)"
+              value={config.replyBehavior.maxDelayMs}
+              onChange={(e) =>
+                updateNested("replyBehavior.maxDelayMs", parseInt(e.target.value))
+              }
+              variant="outlined"
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <FormControl fullWidth>
+              <InputLabel>Engagement Mode</InputLabel>
+              <Select
+                value={config.replyBehavior.engagementMode}
+                label="Engagement Mode"
+                onChange={(e) =>
+                  updateNested("replyBehavior.engagementMode", e.target.value)
+                }
+              >
+                <MenuItem value="passive">Passive</MenuItem>
+                <MenuItem value="active">Active</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <Box sx={{ px: 1 }}>
+              <Typography gutterBottom variant="caption">
+                Proactive Reply Chance: {(config.replyBehavior.proactiveReplyChance * 100).toFixed(0)}%
+              </Typography>
+              <Slider
+                value={config.replyBehavior.proactiveReplyChance}
+                min={0}
+                max={1}
+                step={0.01}
+                valueLabelDisplay="auto"
+                onChange={(e, val) =>
+                  updateNested("replyBehavior.proactiveReplyChance", val)
+                }
+              />
+            </Box>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
+        <Typography variant="h6" gutterBottom color="primary">
+          Logger Settings
+        </Typography>
+        <Grid container spacing={3}>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              fullWidth
+              type="number"
+              label="Max Log Lines"
+              value={config.logger.maxLogLines}
+              onChange={(e) =>
+                updateNested("logger.maxLogLines", parseInt(e.target.value))
+              }
+              variant="outlined"
+            />
+          </Grid>
+          <Grid size={{ xs: 12 }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={config.logger.logReplyDecisions}
+                  onChange={(e) =>
+                    updateNested(
+                      "logger.logReplyDecisions",
+                      e.target.checked,
+                    )
+                  }
+                  color="primary"
+                />
+              }
+              label="Log Reply Decisions"
+            />
+          </Grid>
+          <Grid size={{ xs: 12 }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={config.logger.logSql}
+                  onChange={(e) =>
+                    updateNested(
+                      "logger.logSql",
+                      e.target.checked,
+                    )
+                  }
+                  color="primary"
+                />
+              }
+              label="Log SQL Queries"
             />
           </Grid>
         </Grid>
