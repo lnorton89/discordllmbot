@@ -4,9 +4,9 @@ const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#818cf8', // Indigo-400: Lighter for better contrast on dark bg
-      light: '#a5b4fc',
-      dark: '#4f46e5',
+      main: '#a78bfa', // Violet-400: Less blue, more purple
+      light: '#c4b5fd',
+      dark: '#7c3aed',
       contrastText: '#0f172a',
     },
     secondary: {
@@ -16,18 +16,18 @@ const theme = createTheme({
       contrastText: '#0f172a',
     },
     background: {
-      default: '#020617', // Slate-950 (darker)
-      paper: '#1e293b',   // Slate-800
+      default: '#111827', // Darker slate-900 (navigation background kept)
+      paper: '#333333',   // Lighter neutral gray-700 (better contrast)
     },
     text: {
-      primary: '#f1f5f9', // Slate-100 (crisper white)
-      secondary: '#cbd5e1', // Slate-300 (more readable gray)
+      primary: '#f5f5f5', // More neutral white-gray
+      secondary: '#a3a3a3', // More neutral gray-400
     },
-    divider: 'rgba(148, 163, 184, 0.15)', // Slightly higher contrast
+    divider: 'rgba(163, 163, 163, 0.2)', // More neutral gray, slightly higher contrast
     success: {
-      main: '#34d399', // Emerald-400
-      light: '#6ee7b7',
-      dark: '#059669',
+      main: '#4ade80', // Green-400 (brighter, less blue undertones)
+      light: '#86efac',
+      dark: '#16a34a',
       contrastText: '#020617',
     },
     error: {
@@ -37,15 +37,15 @@ const theme = createTheme({
       contrastText: '#020617',
     },
     warning: {
-      main: '#fbbf24', // Amber-400
-      light: '#fcd34d',
+      main: '#facc15', // Yellow-400 (warmer, more vibrant)
+      light: '#fde047',
       dark: '#d97706',
       contrastText: '#020617',
     },
     info: {
-      main: '#38bdf8', // Sky-400
-      light: '#7dd3fc',
-      dark: '#0284c7',
+      main: '#a3a3a3', // Gray-400 (completely neutral)
+      light: '#d4d4d4',
+      dark: '#525252',
       contrastText: '#020617',
     },
   },
@@ -66,22 +66,28 @@ const theme = createTheme({
     h1: {
       fontWeight: 700,
       letterSpacing: '-0.02em',
+      color: 'secondary.main',
     },
     h2: {
       fontWeight: 600,
       letterSpacing: '-0.01em',
+      color: 'secondary.main',
     },
     h3: {
       fontWeight: 600,
+      color: 'secondary.main',
     },
     h4: {
       fontWeight: 600,
+      color: 'secondary.main',
     },
     h5: {
       fontWeight: 600,
+      color: 'secondary.main',
     },
     h6: {
       fontWeight: 600,
+      color: 'secondary.main',
     },
     subtitle1: {
       fontWeight: 500,
@@ -105,9 +111,9 @@ const theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         body: {
-          scrollbarColor: '#475569 #0f172a',
+          scrollbarColor: '#475569 #121212',
           '&::-webkit-scrollbar, & *::-webkit-scrollbar': {
-            backgroundColor: '#0f172a',
+            backgroundColor: '#121212',
             width: 8,
             height: 8,
           },
@@ -115,7 +121,7 @@ const theme = createTheme({
             borderRadius: 8,
             backgroundColor: '#475569',
             minHeight: 24,
-            border: '2px solid #0f172a',
+            border: '2px solid #121212',
           },
           '&::-webkit-scrollbar-thumb:focus, & *::-webkit-scrollbar-thumb:focus': {
             backgroundColor: '#64748b',
@@ -150,20 +156,20 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: 'none',
-          backgroundColor: '#1e293b', // Ensure consistent background
-          border: '1px solid rgba(148, 163, 184, 0.1)',
+          backgroundColor: 'background.paper', // Use theme background
+          border: '1px solid rgba(163, 163, 163, 0.1)', // More neutral gray
         },
       },
     },
     MuiTableCell: {
       styleOverrides: {
         root: {
-          borderBottom: '1px solid rgba(148, 163, 184, 0.12)',
+          borderBottom: '1px solid rgba(163, 163, 163, 0.12)', // More neutral gray
         },
         head: {
           fontWeight: 600,
-          color: '#cbd5e1',
-          backgroundColor: '#0f172a', // Darker header for contrast
+          color: '#f5f5f5 !important', // Neutral light text
+          backgroundColor: '#2f2f2f !important', // Dark grey background
         },
       },
     },

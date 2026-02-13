@@ -568,32 +568,7 @@ function Servers() {
   }
 
   return (
-    <Box sx={{ width: "100%" }}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
-      >
-        <Typography variant="h5" fontWeight="bold" color="primary">
-          Servers
-        </Typography>
-        {botInfo && (
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddLinkIcon />}
-            href={botInfo.inviteUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Invite Bot
-          </Button>
-        )}
-      </Box>
-
+    <Box sx={{ width: "100%", p: 2}}>
       {servers.length === 0 ? (
         <Alert severity="info">The bot is not in any servers.</Alert>
       ) : (
@@ -603,7 +578,7 @@ function Servers() {
           sx={{ borderRadius: 2 }}
         >
           <Table aria-label="collapsible table">
-            <TableHead sx={{ bgcolor: "background.paper" }}>
+            <TableHead>
               <TableRow>
                 <TableCell width={50} />
                 <TableCell>Server Name</TableCell>
@@ -633,6 +608,22 @@ function Servers() {
           </Table>
         </TableContainer>
       )}
+
+      {/* Invite Bot Button moved under main content and right justified */}
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
+        {botInfo && (
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddLinkIcon />}
+            href={botInfo.inviteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Invite Bot
+          </Button>
+        )}
+      </Box>
 
       {/* Edit Modal */}
       <Dialog

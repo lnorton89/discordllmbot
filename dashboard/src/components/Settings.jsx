@@ -27,7 +27,6 @@ import {
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
-  Save as SaveIcon,
   Person as PersonIcon,
   Api as ApiIcon,
   Storage as StorageIcon,
@@ -234,7 +233,7 @@ function Settings() {
   };
 
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box sx={{ width: "100%"}}>
       <Box
         sx={{
           display: "flex",
@@ -243,9 +242,6 @@ function Settings() {
           mb: 3,
         }}
       >
-        <Typography variant="h5" fontWeight="bold" color="primary">
-          Configuration
-        </Typography>
         {saving && (
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <CircularProgress size={20} />

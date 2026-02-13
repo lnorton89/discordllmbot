@@ -246,7 +246,7 @@ function Logs() {
   };
 
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box sx={{ width: "100%", p: 2 }}>
       <Box
         sx={{
           display: "flex",
@@ -255,10 +255,6 @@ function Logs() {
           mb: 3,
         }}
       >
-        <Typography variant="h5" fontWeight="bold" color="primary">
-          System Logs
-        </Typography>
-
         <Stack direction="row" spacing={1} alignItems="center">
           <Chip
             label="ERROR"
@@ -340,10 +336,10 @@ function Logs() {
           flexDirection: "column",
           flex: 1,
           minHeight: 0,
-          bgcolor: "#0f172a", // Darker background for logs
+          bgcolor: "#0a0a0a", // Dark console background
           color: "#f8fafc",
-          fontFamily: "monospace",
-          fontSize: "0.85rem",
+          fontFamily: "'Fira Code', 'Courier New', monospace",
+          fontSize: "0.75rem",
           height: "70vh",
           overflowY: "auto",
         }}
@@ -370,6 +366,15 @@ function Logs() {
                   "&:before": { display: "none" },
                   "&.Mui-expanded": { margin: 0 },
                   mb: 0.5,
+                  borderRadius: "4px !important",
+                  "&:not(:last-child)": {
+                    borderBottomLeftRadius: 0,
+                    borderBottomRightRadius: 0,
+                  },
+                  "&:first-of-type": {
+                    borderTopLeftRadius: "4px",
+                    borderTopRightRadius: "4px",
+                  },
                 }}
               >
                 <AccordionSummary
@@ -379,14 +384,17 @@ function Logs() {
                     ) : null
                   }
                   sx={{
-                    padding: 0,
+                    padding: "6px 8px",
                     minHeight: "auto",
                     "& .MuiAccordionSummary-content": {
                       margin: 0,
                     },
                     "&:hover": {
-                      bgcolor: "rgba(255,255,255,0.03)",
+                      bgcolor: "rgba(255,255,255,0.1)",
                     },
+                    borderRadius: "4px",
+                    margin: "2px 0",
+                    backgroundColor: "rgba(30, 30, 30, 0.5)",
                   }}
                 >
                   <Box
@@ -401,8 +409,8 @@ function Logs() {
                         sx={{
                           mr: 1,
                           display: "flex",
-                          alignItems: "flex-start",
-                          pt: 0.5,
+                          alignItems: "center",
+                          height: "100%",
                         }}
                       >
                         {getLogIcon(type)}
@@ -421,8 +429,14 @@ function Logs() {
                           color: getLevelColor(type),
                           whiteSpace: "pre-wrap",
                           wordBreak: "break-all",
-                          lineHeight: 1.5,
+                          lineHeight: 1.4,
                           display: "inline",
+                          fontFamily: "'Fira Code', 'Courier New', monospace",
+                          fontSize: "0.75rem",
+                          backgroundColor: "rgba(0, 0, 0, 0.2)",
+                          padding: "2px 4px",
+                          borderRadius: "3px",
+                          borderLeft: `2px solid ${getLevelColor(type)}`,
                         }}
                       >
                         {parsedLog.text}

@@ -15,7 +15,6 @@ import {
   ListItemAvatar,
   ListItemText,
   Divider,
-  IconButton,
   Tooltip,
 } from "@mui/material";
 import {
@@ -133,18 +132,17 @@ function Playground({ messages: propMessages, setMessages: propSetMessages }) {
          display: "flex",
         flexDirection: "column",
         height: "calc(100vh - 110px)",
+        p: 2,
      }}>
       <Box
         sx={{
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
           alignItems: "center",
           mb: 3,
         }}
       >
-        <Typography variant="h5" fontWeight="bold" color="primary">
-          Bot Playground
-        </Typography>
+
         <Tooltip title="Clear Chat">
           <Button
             variant="outlined"
@@ -289,13 +287,22 @@ function Playground({ messages: propMessages, setMessages: propSetMessages }) {
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
                 },
+                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "secondary.main",
+                },
               }}
             />
             <Button
               onClick={handleSendMessage}
               disabled={!inputValue.trim() || isLoading}
               variant="contained"
-              sx={{ borderRadius: 2 }}
+              sx={{ 
+                borderRadius: 2,
+                backgroundColor: "secondary.main",
+                "&:hover": {
+                  backgroundColor: "secondary.dark",
+                },
+              }}
               endIcon={<SendIcon />}
             >
               Send

@@ -12,9 +12,6 @@ import {
   ListItemText,
   Avatar,
   Divider,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Table,
   TableBody,
   TableCell,
@@ -26,7 +23,6 @@ import {
   alpha,
 } from "@mui/material";
 import {
-  ExpandMore as ExpandMoreIcon,
   Message as MessageIcon,
   People as PeopleIcon,
   Dns as DnsIcon,
@@ -134,10 +130,6 @@ function Dashboard({ health }) {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h5" fontWeight="bold" gutterBottom>
-        Dashboard
-      </Typography>
-
       <Grid container spacing={2}>
         {/* Left Column: Status Strip & Latest Activity */}
         <Grid size={{ xs: 12, md: 9 }}>
