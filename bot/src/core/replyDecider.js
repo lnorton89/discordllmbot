@@ -7,8 +7,8 @@ import { logger } from '../../../shared/utils/logger.js';
  */
 import { loadConfig } from '../../../shared/config/configLoader.js';
 
-export function shouldReply({ message, isMentioned, replyBehavior = {}, relationship = {}, context = [], botName = '' }) {
-    const config = loadConfig();
+export async function shouldReply({ message, isMentioned, replyBehavior = {}, relationship = {}, context = [], botName = '' }) {
+    const config = await loadConfig();
     const logDecisions = config.logger?.logReplyDecisions ?? false;
     const checks = [];
     const finalDecision = (result, reason) => {
@@ -61,10 +61,10 @@ export function shouldReply({ message, isMentioned, replyBehavior = {}, relation
         return finalDecision(false, `Channel #${message.channel.name} (${message.channel.id}) is on the global ignore list.`);
     }
     
-    // Check if there are guild-specific channel settings
+    // Check guild-specific channel settings (these are server-specific)
     const guildSpecificChannels = replyBehavior.guildSpecificChannels || {};
     const guildChannels = guildSpecificChannels[message.guild.id];
-    
+
     if (guildChannels) {
         // If specific channels are defined for this guild, only monitor those
         if (Array.isArray(guildChannels.allowed) && guildChannels.allowed.length > 0) {

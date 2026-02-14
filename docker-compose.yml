@@ -24,9 +24,10 @@ services:
       - ./bot:/usr/src/app/bot
       - ./shared:/usr/src/app/shared
       - ./logs:/usr/src/app/logs
-    command: npm run dev:container
+    command: npm run dev:container 
     ports:
       - "${API_PORT}:3000"
+      - 9229:9229
     depends_on:
       db:
         condition: service_healthy

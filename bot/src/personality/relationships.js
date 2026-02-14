@@ -49,8 +49,8 @@ export async function saveGuildRelationships(guildId, guildName) {
     }
 }
 
-function getDefaultRelationship() {
-    const botConfig = getBotConfig();
+async function getDefaultRelationship() {
+    const botConfig = await getBotConfig();
     return botConfig.defaultRelationship ?? {
         attitude: 'neutral',
         behavior: [
@@ -86,7 +86,7 @@ export async function initializeGuildRelationships(guild) {
         members = guild.members.cache;
     }
 
-    const defaultRel = getDefaultRelationship();
+    const defaultRel = await getDefaultRelationship();
     let changed = false;
 
     for (const [memberId, member] of members) {

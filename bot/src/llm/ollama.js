@@ -77,7 +77,7 @@ function getOllamaUrl() {
  * @returns {Promise<{text: string|null, usageMetadata: Object|null}>} Reply text and usage metadata or null if no content
  */
 export async function generateReply(prompt) {
-    const apiCfg = getApiConfig();
+    const apiCfg = await getApiConfig();
     const { ollamaModel, retryAttempts = 3, retryBackoffMs = 1000 } = apiCfg;
 
     return retry(async () => {

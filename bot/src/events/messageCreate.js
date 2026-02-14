@@ -12,8 +12,13 @@ export async function handleMessageCreate(message, client) {
     if (message.author.bot) return;
     if (!message.guild) return;
 
+    const guildId = message.guild.id;
     const cleanMessage = message.content.replace(/<@!?\d+>/g, '').trim();
-    const botConfig = getBotConfig();
+
+    // Get server-specific configs
+    const botConfig = await getBotConfig(guildId);
+    const memoryConfig = await getMemoryConfig(guildId);
+    const replyBehavior = await getReplyBehavior(guildId);
 
     // Log that bot was mentioned
     logger.message(`@mention from ${message.author.username} in #${message.channel.name}: "${cleanMessage}"`);
@@ -21,13 +26,13 @@ export async function handleMessageCreate(message, client) {
     try {
         // Get the mentioned user's relationship and recent context
         const relationship = getRelationship(
-            message.guild.id,
+            guildId,
             message.author.id
         );
 
         // Add this message to context BEFORE building prompt
-        addMessage(
-            message.guild.id,
+        await addMessage(
+            guildId,
             message.channel.id,
             message.author.id,
             message.author.username,
@@ -35,30 +40,31 @@ export async function handleMessageCreate(message, client) {
         );
 
         // Build prompt with context
-        const { maxMessages } = getMemoryConfig();
-        const context = (await loadContexts(message.guild.id, message.channel.id, maxMessages)).slice(0, -1);
-        const guildRelationships = getAllRelationships()[message.guild.id] ?? {};
+        const { maxMessages } = memoryConfig;
+        const context = (await loadContexts(guildId, message.channel.id, maxMessages)).slice(0, -1);
+        const guildRelationships = getAllRelationships()[guildId] ?? {};
 
-        const prompt = buildPrompt({
+        const prompt = await buildPrompt({
             relationship,
             context,
             guildRelationships,
             guildName: message.guild.name,
             userMessage: cleanMessage,
-            username: message.author.username
+            username: message.author.username,
+            botConfig, // Pass server-specific bot config to prompt builder
+            guildId
         });
 
         // Check if we should reply
-        const replyBehavior = getReplyBehavior() ?? {};
         const isMentioned = message.mentions.has(client.user);
-        const replyDecision = shouldReply({ message, isMentioned, replyBehavior, relationship, context, botName: botConfig.name });
+        const replyDecision = await shouldReply({ message, isMentioned, replyBehavior, relationship, context, botName: botConfig.name });
 
         if (!replyDecision.result) {
 
             return;
         }
 
-        
+
         const startTime = Date.now();
         const { text: reply, usageMetadata } = await generateReply(prompt);
         const processingTimeMs = Date.now() - startTime;
@@ -93,8 +99,8 @@ export async function handleMessageCreate(message, client) {
             );
 
             // Add the bot's reply to the context
-            addMessage(
-                message.guild.id,
+            await addMessage(
+                guildId,
                 message.channel.id,
                 client.user.id,
                 botConfig.name,
@@ -102,7 +108,8 @@ export async function handleMessageCreate(message, client) {
             );
 
             // Single combined API-level log: Gemini model -> Discord send
-            const { geminiModel } = getApiConfig();
+            const apiConfig = await getApiConfig();
+            const { geminiModel } = apiConfig;
             logger.api(`→ Gemini(${geminiModel}):generateReply() -> Discord API: message.reply()`);
 
             // Log successful reply with a short preview for readability
@@ -110,6 +117,6 @@ export async function handleMessageCreate(message, client) {
             logger.message(`✓ Replied to ${message.author.username}: "${replyPreview}"`);
         }
     } catch (err) {
-        logger.error(`Error processing mention from ${message.author.username}`, err);
+        logger.error('Error handling messageCreate event', err);
     }
 }

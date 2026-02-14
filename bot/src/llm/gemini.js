@@ -4,8 +4,8 @@ import { getApiConfig } from '../../../shared/config/configLoader.js';
 /**
  * Get Gemini API URL for the configured model
  */
-function getGeminiUrl() {
-    const { geminiModel } = getApiConfig();
+async function getGeminiUrl() {
+    const { geminiModel } = await getApiConfig();
     return `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`;
 }
 
@@ -34,13 +34,16 @@ function isRetryable(error) {
 /**
  * Exponential backoff retry logic
  * @param {Function} fn - Async function to retry
- * @param {number} maxRetries - Maximum number of retries
+ * @param {number} maxRetries - Maximum number of retries (so total attempts = maxRetries + 1)
  * @returns {Promise}
  */
 async function retry(fn, maxRetries = 3, baseBackoffMs = 1000) {
     let lastError;
 
-    for (let i = 0; i < maxRetries; i++) {
+    // Total attempts = initial attempt + number of retries
+    const totalAttempts = maxRetries + 1;
+    
+    for (let i = 0; i < totalAttempts; i++) {
         try {
             return await fn();
         } catch (err) {
@@ -50,7 +53,8 @@ async function retry(fn, maxRetries = 3, baseBackoffMs = 1000) {
                 throw err;
             }
 
-            if (i < maxRetries - 1) {
+            // If this isn't the last attempt, prepare for retry
+            if (i < totalAttempts - 1) {
                 // Prefer honoring server-provided Retry-After when available
                 let backoffMs = null;
                 if (err && typeof err.retryAfterMs === 'number') {
@@ -59,10 +63,11 @@ async function retry(fn, maxRetries = 3, baseBackoffMs = 1000) {
 
                 // Fallback to exponential backoff with jitter using configured base
                 if (!backoffMs) {
+                    // Use (i) for backoff calculation since i=0 for first retry, i=1 for second retry, etc.
                     backoffMs = Math.pow(2, i) * baseBackoffMs + Math.random() * Math.min(1000, baseBackoffMs);
                 }
 
-                logger.warn(`Retrying Gemini API (attempt ${i + 2}/${maxRetries}) after ${backoffMs}ms: ${err.message}${err.cause ? ` (Cause: ${err.cause.message})` : ''}`);
+                logger.warn(`Retrying Gemini API (attempt ${i + 2}/${totalAttempts}) after ${backoffMs}ms: ${err.message}${err.cause ? ` (Cause: ${err.cause.message})` : ''}`);
                 await new Promise(r => setTimeout(r, backoffMs));
             }
         }
@@ -77,20 +82,20 @@ async function retry(fn, maxRetries = 3, baseBackoffMs = 1000) {
  * @returns {Promise<{text: string|null, usageMetadata: Object|null}>} Reply text and usage metadata or null if no content
  */
 export async function generateReply(prompt) {
-    const apiCfg = getApiConfig();
+    const apiCfg = await getApiConfig();
     const { geminiModel, retryAttempts = 3, retryBackoffMs = 1000 } = apiCfg;
 
     return retry(async () => {
-        const url = getGeminiUrl();
+        const url = await getGeminiUrl();
         const apiKey = process.env.GEMINI_API_KEY;
-        
+
         if (!apiKey) {
             throw new Error('GEMINI_API_KEY not set in environment');
         }
 
         // Minimal Gemini request log (no prompt preview or lengths)
         logger.api(`→ Gemini API Request: Model=${geminiModel} Function=generateReply()`);
-        
+
         const res = await fetch(
             `${url}?key=${apiKey}`,
             {
@@ -111,9 +116,12 @@ export async function generateReply(prompt) {
             const errorText = await res.text();
             const retryAfter = res.headers.get?.('retry-after') ?? null;
 
-            logger.error(`Gemini API error ${res.status}: ${errorText.substring(0, 200)}`);
-            
             const isRetryable = res.status >= 500 || res.status === 429;
+            // Only log the error if it's not going to be retried, to avoid log spam during retries
+            if (!isRetryable) {
+                logger.error(`Gemini API error ${res.status}: ${errorText.substring(0, 200)}`);
+            }
+
             const error = new GeminiAPIError(
                 `Gemini API error: ${res.status}${errorText ? `: ${errorText}` : ''}`,
                 res.status,

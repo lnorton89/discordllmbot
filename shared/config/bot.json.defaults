@@ -33,18 +33,6 @@
     "retryAttempts": 3,
     "retryBackoffMs": 1000
   },
-  "replyBehavior": {
-    "mode": "mention-only",
-    "replyProbability": 1.0,
-    "minDelayMs": 500,
-    "maxDelayMs": 3000,
-    "ignoreUsers": [],
-    "ignoreChannels": [],
-    "ignoreKeywords": [],
-    "requireMention": true,
-    "engagementMode": "passive",
-    "proactiveReplyChance": 0.05
-  },
   "logger": {
     "maxLogLines": 1000,
     "logReplyDecisions": false,

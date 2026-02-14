@@ -11,7 +11,8 @@ export async function handleGuildMemberAdd(member) {
     try {
         const displayName = member.displayName ?? member.user.username ?? userId;
         const username = member.user.username ?? userId;
-        const defaultRel = getBotConfig().defaultRelationship ?? { attitude: 'neutral', behavior: [], boundaries: [] };
+        const botConfig = await getBotConfig();
+        const defaultRel = botConfig.defaultRelationship ?? { attitude: 'neutral', behavior: [], boundaries: [] };
 
         setRelationship(guildId, guildName, userId, {
             username,

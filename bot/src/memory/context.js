@@ -11,12 +11,13 @@ const guildContexts = {};
  * @param {string} authorId - The ID of the message author.
  * @param {string} authorName - The username of the message author.
  * @param {string} content - The content of the message.
+ * @returns {Promise<void>}
  */
-export function addMessage(guildId, channelId, authorId, authorName, content) {
+export async function addMessage(guildId, channelId, authorId, authorName, content) {
     guildContexts[guildId] ??= {};
     guildContexts[guildId][channelId] ??= [];
 
-    const { maxMessages } = getMemoryConfig();
+    const { maxMessages } = await getMemoryConfig();
 
     const message = { authorId, author: authorName, content };
     guildContexts[guildId][channelId].push(message);
@@ -25,7 +26,7 @@ export function addMessage(guildId, channelId, authorId, authorName, content) {
         guildContexts[guildId][channelId].shift();
     }
 
-    saveMessage(guildId, channelId, authorId, authorName, content);
+    await saveMessage(guildId, channelId, authorId, authorName, content);
 }
 
 /**

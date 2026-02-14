@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "build": "docker-compose build",
-    "dev:container": "nodemon src/index.js",
+    "dev:container": "nodemon src/index.js --inspect=0.0.0.0:9229",
     "start": "node src/index.js",
     "lint": "eslint src/"
   },

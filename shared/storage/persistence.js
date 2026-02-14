@@ -63,7 +63,7 @@ export async function saveRelationships(guildId, relationships) {
 
     try {
         await client.query('BEGIN');
-        
+
         await client.query('DELETE FROM relationship_behaviors WHERE guildId = $1', [guildId]);
         await client.query('DELETE FROM relationship_boundaries WHERE guildId = $1', [guildId]);
         await client.query('DELETE FROM relationships WHERE guildId = $1', [guildId]);
@@ -85,6 +85,92 @@ export async function saveRelationships(guildId, relationships) {
     } finally {
         client.release();
     }
+}
+
+/**
+ * Gets server-specific configuration
+ * @param {string} guildId - The guild ID
+ * @returns {Promise<Object|null>} Server config or null if not found
+ */
+export async function getServerConfig(guildId) {
+    const db = await getDb();
+    const result = await db.query('SELECT config FROM server_configs WHERE guildId = $1', [guildId]);
+    return result.rows.length > 0 ? result.rows[0].config : null;
+}
+
+/**
+ * Saves server-specific configuration
+ * @param {string} guildId - The guild ID
+ * @param {Object} config - The server configuration
+ * @returns {Promise<void>}
+ */
+export async function saveServerConfig(guildId, config) {
+    const db = await getDb();
+    await db.query(`
+        INSERT INTO server_configs (guildId, config, updatedAt)
+        VALUES ($1, $2, CURRENT_TIMESTAMP)
+        ON CONFLICT (guildId)
+        DO UPDATE SET config = $2, updatedAt = CURRENT_TIMESTAMP
+    `, [guildId, config]);
+}
+
+/**
+ * Deletes server-specific configuration
+ * @param {string} guildId - The guild ID
+ * @returns {Promise<void>}
+ */
+export async function deleteServerConfig(guildId) {
+    const db = await getDb();
+    await db.query('DELETE FROM server_configs WHERE guildId = $1', [guildId]);
+}
+
+/**
+ * Gets global configuration
+ * @returns {Promise<Object|null>} Global config or null if not found
+ */
+export async function getGlobalConfig() {
+    const db = await getDb();
+    const result = await db.query('SELECT config FROM global_config WHERE id = $1', ['global']);
+    return result.rows.length > 0 ? result.rows[0].config : null;
+}
+
+/**
+ * Saves global configuration
+ * @param {Object} config - The global configuration
+ * @returns {Promise<void>}
+ */
+export async function saveGlobalConfig(config) {
+    const db = await getDb();
+    await db.query(`
+        INSERT INTO global_config (id, config, updatedAt)
+        VALUES ($1, $2, CURRENT_TIMESTAMP)
+        ON CONFLICT (id)
+        DO UPDATE SET config = $2, updatedAt = CURRENT_TIMESTAMP
+    `, ['global', config]);
+}
+
+/**
+ * Deletes global configuration (resets to default)
+ * @returns {Promise<void>}
+ */
+export async function deleteGlobalConfig() {
+    const db = await getDb();
+    await db.query('DELETE FROM global_config WHERE id = $1', ['global']);
+}
+
+/**
+ * Gets all server configurations
+ * @returns {Promise<Array>} Array of server configs
+ */
+export async function getAllServerConfigs() {
+    const db = await getDb();
+    const result = await db.query(`
+        SELECT sc.guildId, sc.config, g.guildName, sc.updatedAt
+        FROM server_configs sc
+        JOIN guilds g ON sc.guildId = g.guildId
+        ORDER BY sc.updatedAt DESC
+    `);
+    return result.rows;
 }
 
 /**
@@ -176,7 +262,7 @@ export async function getLatestReplies(limit = 10) {
  */
 export async function getAnalyticsData() {
     const db = await getDb();
-    
+
     // Stats for the last 24 hours
     const stats24h = await db.query(`
         SELECT 

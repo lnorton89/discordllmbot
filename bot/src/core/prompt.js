@@ -10,18 +10,23 @@ import { getBotPersona } from '../personality/botPersona.js';
  * @param {string} [params.guildName=''] - The name of the guild.
  * @param {string} params.userMessage - The content of the user's message.
  * @param {string} params.username - The username of the user triggering the reply.
- * @returns {string} The constructed prompt string.
+ * @param {Object} [params.botConfig] - Server-specific bot configuration.
+ * @param {string} params.guildId - The guild ID to get the global bot persona for.
+ * @returns {Promise<string>} The constructed prompt string.
  */
-export function buildPrompt({
+export async function buildPrompt({
     relationship,
     context,
     guildRelationships = {},
     guildName = '',
     userMessage,
-    username
+    username,
+    botConfig,
+    guildId
 }) {
-    const botPersona = getBotPersona();
-    
+    // Use server-specific bot config if provided, otherwise fallback to global persona
+    const botPersona = botConfig || await getBotPersona(guildId);
+
     // Build a compact view of relationships for users present in the recent context
     const uniqueUserIds = Array.from(new Set(context.map(m => m.authorId).filter(Boolean)));
     const relationshipLines = uniqueUserIds.map(id => {

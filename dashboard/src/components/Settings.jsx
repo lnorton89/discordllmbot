@@ -16,7 +16,6 @@ import {
   Snackbar,
   Alert,
   IconButton,
-  Slider,
   Tabs,
   Tab,
   Button,
@@ -28,12 +27,10 @@ import {
   Add as AddIcon,
   Delete as DeleteIcon,
   Person as PersonIcon,
-  Api as ApiIcon,
+  Api as LLMIcon,
   Storage as StorageIcon,
-  Chat as ChatIcon,
   Visibility as VisibilityIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon,
-  FormatQuote as FormatQuoteIcon,
   Gavel as GavelIcon,
 } from "@mui/icons-material";
 
@@ -49,18 +46,19 @@ function Settings() {
   const [models, setModels] = useState([]);
   const [isFetchingModels, setIsFetchingModels] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
-  const [activeSpeakingSection, setActiveSpeakingSection] = useState('speakingStyle'); // Default to speaking style open
-  
+  const [activeSpeakingSection, setActiveSpeakingSection] =
+    useState("globalRules"); // Default to global rules open
+
   // Debounce timer reference
   const debounceTimer = useRef(null);
 
   useEffect(() => {
-    fetchConfig().then(initialConfig => {
+    fetchConfig().then((initialConfig) => {
       if (initialConfig) {
         fetchModels(initialConfig.api?.provider || "gemini");
       }
     });
-    
+
     // Cleanup on unmount
     return () => {
       if (debounceTimer.current) {
@@ -93,7 +91,9 @@ function Settings() {
 
     setIsFetchingModels(true);
     try {
-      const res = await axios.get("/api/models", { params: { provider: providerToFetch } });
+      const res = await axios.get("/api/models", {
+        params: { provider: providerToFetch },
+      });
       setModels(res.data);
       return res.data; // Return the models
     } catch (err) {
@@ -138,7 +138,7 @@ function Settings() {
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
-    
+
     // Set a new timer to save after 1000ms (1 second)
     debounceTimer.current = setTimeout(() => {
       saveConfig(newConfig);
@@ -157,10 +157,10 @@ function Settings() {
         current = current[key];
       }
       current[lastKey] = value;
-      
+
       // Trigger debounced save
       debouncedSave(newConfig);
-      
+
       return newConfig;
     });
   };
@@ -174,7 +174,10 @@ function Settings() {
       for (const key of keys) current = current[key];
 
       const currentArray = current[lastKey];
-      if (currentArray.length > 0 && currentArray[currentArray.length - 1] === "") {
+      if (
+        currentArray.length > 0 &&
+        currentArray[currentArray.length - 1] === ""
+      ) {
         return newConfig;
       }
       current[lastKey] = [...currentArray, item];
@@ -190,7 +193,9 @@ function Settings() {
       const lastKey = keys.pop();
       for (const key of keys) current = current[key];
 
-      current[lastKey] = [...current[lastKey]].filter(item => item !== itemToRemove);
+      current[lastKey] = [...current[lastKey]].filter(
+        (item) => item !== itemToRemove,
+      );
       return newConfig;
     });
   };
@@ -206,10 +211,10 @@ function Settings() {
       const newArray = [...current[lastKey]];
       newArray[index] = value;
       current[lastKey] = newArray;
-      
+
       // Trigger debounced save
       debouncedSave(newConfig);
-      
+
       return newConfig;
     });
   };
@@ -233,7 +238,7 @@ function Settings() {
   };
 
   return (
-    <Box sx={{ width: "100%"}}>
+    <Box sx={{ width: "100%" }}>
       <Box
         sx={{
           display: "flex",
@@ -264,45 +269,37 @@ function Settings() {
             backgroundColor: "background.paper",
           }}
         >
-          <Tab 
+          <Tab
             label={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <PersonIcon fontSize="small" />
                 <span>Bot Persona</span>
               </Box>
-            } 
+            }
           />
-          <Tab 
+          <Tab
             label={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <ApiIcon fontSize="small" />
-                <span>API</span>
+                <LLMIcon fontSize="small" />
+                <span>LLM</span>
               </Box>
-            } 
+            }
           />
-          <Tab 
+          <Tab
             label={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <StorageIcon fontSize="small" />
                 <span>Memory</span>
               </Box>
-            } 
+            }
           />
-          <Tab 
-            label={
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <ChatIcon fontSize="small" />
-                <span>Reply Behavior</span>
-              </Box>
-            } 
-          />
-          <Tab 
+          <Tab
             label={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <VisibilityIcon fontSize="small" />
                 <span>Logger</span>
               </Box>
-            } 
+            }
           />
         </Tabs>
 
@@ -310,14 +307,14 @@ function Settings() {
           {/* Bot Persona Tab */}
           {activeTab === 0 && (
             <>
-              <Typography 
-                variant="h6" 
-                gutterBottom 
+              <Typography
+                variant="h6"
+                gutterBottom
                 component="div"
-                sx={{ 
-                  fontSize: "0.9rem", 
+                sx={{
+                  fontSize: "0.9rem",
                   color: "text.secondary",
-                  mb: 2 
+                  mb: 2,
                 }}
               >
                 Bot Persona
@@ -326,7 +323,8 @@ function Settings() {
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
-                    label="Bot Name"
+                    label="Global Bot Name"
+                    helperText="The name used for the Discord application"
                     value={config.bot.name}
                     onChange={(e) => updateNested("bot.name", e.target.value)}
                     variant="outlined"
@@ -335,113 +333,63 @@ function Settings() {
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
-                    label="Username"
+                    label="Global Username"
+                    helperText="The username used for the Discord application"
                     value={config.bot.username}
-                    onChange={(e) => updateNested("bot.username", e.target.value)}
+                    onChange={(e) =>
+                      updateNested("bot.username", e.target.value)
+                    }
                     variant="outlined"
                   />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
-                    label="Description"
+                    label="Default Persona Description"
+                    helperText="Baseline description for new servers"
                     multiline
                     rows={3}
                     value={config.bot.description}
-                    onChange={(e) => updateNested("bot.description", e.target.value)}
+                    onChange={(e) =>
+                      updateNested("bot.description", e.target.value)
+                    }
                     variant="outlined"
                   />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
-                  <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                    <Accordion 
-                      expanded={activeSpeakingSection === 'speakingStyle'}
-                      onChange={() => handleSpeakingSectionChange('speakingStyle')}
-                      sx={{ 
-                        '&.Mui-expanded': { 
-                          margin: 0 
+                  <Box
+                    sx={{ display: "flex", flexDirection: "column", gap: 1 }}
+                  >
+                    <Accordion
+                      expanded={activeSpeakingSection === "globalRules"}
+                      onChange={() =>
+                        handleSpeakingSectionChange("globalRules")
+                      }
+                      sx={{
+                        "&.Mui-expanded": {
+                          margin: 0,
                         },
-                        '&:before': {
-                          display: 'none'
-                        }
+                        "&:before": {
+                          display: "none",
+                        },
                       }}
                     >
                       <AccordionSummary
                         expandIcon={<KeyboardArrowDownIcon />}
-                        sx={{ 
-                          pl: 2, 
-                          pr: 2, 
-                          backgroundColor: 'primary.main',
-                          color: 'primary.contrastText',
+                        sx={{
+                          pl: 2,
+                          pr: 2,
+                          backgroundColor: "secondary.main",
+                          color: "secondary.contrastText",
                           borderRadius: 1,
-                          '&.Mui-expanded': {
-                            borderRadius: '8px 8px 0 0',
-                          }
+                          "&.Mui-expanded": {
+                            borderRadius: "8px 8px 0 0",
+                          },
                         }}
                       >
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                          <FormatQuoteIcon fontSize="small" />
-                          <Typography variant="subtitle2" color="inherit">
-                            Speaking Style
-                          </Typography>
-                        </Box>
-                      </AccordionSummary>
-                      <AccordionDetails sx={{ pl: 2, pr: 2, pt: 2, pb: 2 }}>
-                        {config.bot.speakingStyle.map((style, index) => (
-                          <Box key={index} sx={{ display: "flex", gap: 1, mb: 1 }}>
-                            <TextField
-                              fullWidth
-                              size="small"
-                              value={style}
-                              onChange={(e) =>
-                                updateArrayItem("bot.speakingStyle", index, e.target.value)
-                              }
-                              variant="outlined"
-                            />
-                            <IconButton
-                              color="error"
-                              onClick={() => removeArrayItem("bot.speakingStyle", index)}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </Box>
-                        ))}
-                        <Button
-                          startIcon={<AddIcon />}
-                          size="small"
-                          onClick={() => addArrayItem("bot.speakingStyle")}
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
-                          Add Style
-                        </Button>
-                      </AccordionDetails>
-                    </Accordion>
-                    
-                    <Accordion 
-                      expanded={activeSpeakingSection === 'globalRules'}
-                      onChange={() => handleSpeakingSectionChange('globalRules')}
-                      sx={{ 
-                        '&.Mui-expanded': { 
-                          margin: 0 
-                        },
-                        '&:before': {
-                          display: 'none'
-                        }
-                      }}
-                    >
-                      <AccordionSummary
-                        expandIcon={<KeyboardArrowDownIcon />}
-                        sx={{ 
-                          pl: 2, 
-                          pr: 2, 
-                          backgroundColor: 'secondary.main',
-                          color: 'secondary.contrastText',
-                          borderRadius: 1,
-                          '&.Mui-expanded': {
-                            borderRadius: '8px 8px 0 0',
-                          }
-                        }}
-                      >
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                           <GavelIcon fontSize="small" />
                           <Typography variant="subtitle2" color="inherit">
                             Global Rules
@@ -450,19 +398,28 @@ function Settings() {
                       </AccordionSummary>
                       <AccordionDetails sx={{ pl: 2, pr: 2, pt: 2, pb: 2 }}>
                         {config.bot.globalRules.map((rule, index) => (
-                          <Box key={index} sx={{ display: "flex", gap: 1, mb: 1 }}>
+                          <Box
+                            key={index}
+                            sx={{ display: "flex", gap: 1, mb: 1 }}
+                          >
                             <TextField
                               fullWidth
                               size="small"
                               value={rule}
                               onChange={(e) =>
-                                updateArrayItem("bot.globalRules", index, e.target.value)
+                                updateArrayItem(
+                                  "bot.globalRules",
+                                  index,
+                                  e.target.value,
+                                )
                               }
                               variant="outlined"
                             />
                             <IconButton
                               color="error"
-                              onClick={() => removeArrayItem("bot.globalRules", index)}
+                              onClick={() =>
+                                removeArrayItem("bot.globalRules", index)
+                              }
                             >
                               <DeleteIcon />
                             </IconButton>
@@ -486,17 +443,17 @@ function Settings() {
           {/* API Settings Tab */}
           {activeTab === 1 && (
             <>
-              <Typography 
-                variant="h6" 
-                gutterBottom 
+              <Typography
+                variant="h6"
+                gutterBottom
                 component="div"
-                sx={{ 
-                  fontSize: "0.9rem", 
+                sx={{
+                  fontSize: "0.9rem",
                   color: "text.secondary",
-                  mb: 2 
+                  mb: 2,
                 }}
               >
-                API Settings
+                LLM Settings
               </Typography>
               <Grid container spacing={3}>
                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -603,7 +560,10 @@ function Settings() {
                     label="Retry Attempts"
                     value={config.api.retryAttempts}
                     onChange={(e) =>
-                      updateNested("api.retryAttempts", parseInt(e.target.value))
+                      updateNested(
+                        "api.retryAttempts",
+                        parseInt(e.target.value),
+                      )
                     }
                     variant="outlined"
                   />
@@ -615,7 +575,10 @@ function Settings() {
                     label="Retry Backoff (ms)"
                     value={config.api.retryBackoffMs}
                     onChange={(e) =>
-                      updateNested("api.retryBackoffMs", parseInt(e.target.value))
+                      updateNested(
+                        "api.retryBackoffMs",
+                        parseInt(e.target.value),
+                      )
                     }
                     variant="outlined"
                   />
@@ -627,14 +590,14 @@ function Settings() {
           {/* Memory Settings Tab */}
           {activeTab === 2 && (
             <>
-              <Typography 
-                variant="h6" 
-                gutterBottom 
+              <Typography
+                variant="h6"
+                gutterBottom
                 component="div"
-                sx={{ 
-                  fontSize: "0.9rem", 
+                sx={{
+                  fontSize: "0.9rem",
                   color: "text.secondary",
-                  mb: 2 
+                  mb: 2,
                 }}
               >
                 Memory Settings
@@ -647,7 +610,10 @@ function Settings() {
                     label="Max Memory (Messages)"
                     value={config.memory.maxMessages}
                     onChange={(e) =>
-                      updateNested("memory.maxMessages", parseInt(e.target.value))
+                      updateNested(
+                        "memory.maxMessages",
+                        parseInt(e.target.value),
+                      )
                     }
                     variant="outlined"
                   />
@@ -659,153 +625,29 @@ function Settings() {
                     label="Max Message Age (Days)"
                     value={config.memory.maxMessageAgeDays}
                     onChange={(e) =>
-                      updateNested("memory.maxMessageAgeDays", parseInt(e.target.value))
+                      updateNested(
+                        "memory.maxMessageAgeDays",
+                        parseInt(e.target.value),
+                      )
                     }
                     variant="outlined"
                   />
-                </Grid>
-              </Grid>
-            </>
-          )}
-
-          {/* Reply Behavior Tab */}
-          {activeTab === 3 && (
-            <>
-              <Typography 
-                variant="h6" 
-                gutterBottom 
-                component="div"
-                sx={{ 
-                  fontSize: "0.9rem", 
-                  color: "text.secondary",
-                  mb: 2 
-                }}
-              >
-                Reply Behavior
-              </Typography>
-              <Grid container spacing={3}>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <FormControl fullWidth>
-                    <InputLabel>Mode</InputLabel>
-                    <Select
-                      value={config.replyBehavior.mode}
-                      label="Mode"
-                      onChange={(e) =>
-                        updateNested("replyBehavior.mode", e.target.value)
-                      }
-                    >
-                      <MenuItem value="mention-only">Mention Only</MenuItem>
-                      <MenuItem value="active">Active</MenuItem>
-                      <MenuItem value="passive">Passive</MenuItem>
-                      <MenuItem value="disabled">Disabled</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Box sx={{ px: 1 }}>
-                    <Typography gutterBottom variant="caption">
-                      Reply Probability: {config.replyBehavior.replyProbability}
-                    </Typography>
-                    <Slider
-                      value={config.replyBehavior.replyProbability}
-                      min={0}
-                      max={1}
-                      step={0.1}
-                      valueLabelDisplay="auto"
-                      onChange={(e, val) =>
-                        updateNested("replyBehavior.replyProbability", val)
-                      }
-                    />
-                  </Box>
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={config.replyBehavior.requireMention}
-                        onChange={(e) =>
-                          updateNested(
-                            "replyBehavior.requireMention",
-                            e.target.checked,
-                          )
-                        }
-                        color="primary"
-                      />
-                    }
-                    label="Require Mention (Always)"
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Min Delay (ms)"
-                    value={config.replyBehavior.minDelayMs}
-                    onChange={(e) =>
-                      updateNested("replyBehavior.minDelayMs", parseInt(e.target.value))
-                    }
-                    variant="outlined"
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Max Delay (ms)"
-                    value={config.replyBehavior.maxDelayMs}
-                    onChange={(e) =>
-                      updateNested("replyBehavior.maxDelayMs", parseInt(e.target.value))
-                    }
-                    variant="outlined"
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <FormControl fullWidth>
-                    <InputLabel>Engagement Mode</InputLabel>
-                    <Select
-                      value={config.replyBehavior.engagementMode}
-                      label="Engagement Mode"
-                      onChange={(e) =>
-                        updateNested("replyBehavior.engagementMode", e.target.value)
-                      }
-                    >
-                      <MenuItem value="passive">Passive</MenuItem>
-                      <MenuItem value="active">Active</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Box sx={{ px: 1 }}>
-                    <Typography gutterBottom variant="caption">
-                      Proactive Reply Chance: {(config.replyBehavior.proactiveReplyChance * 100).toFixed(0)}%
-                    </Typography>
-                    <Slider
-                      value={config.replyBehavior.proactiveReplyChance}
-                      min={0}
-                      max={1}
-                      step={0.01}
-                      valueLabelDisplay="auto"
-                      onChange={(e, val) =>
-                        updateNested("replyBehavior.proactiveReplyChance", val)
-                      }
-                    />
-                  </Box>
                 </Grid>
               </Grid>
             </>
           )}
 
           {/* Logger Settings Tab */}
-          {activeTab === 4 && (
+          {activeTab === 3 && (
             <>
-              <Typography 
-                variant="h6" 
-                gutterBottom 
+              <Typography
+                variant="h6"
+                gutterBottom
                 component="div"
-                sx={{ 
-                  fontSize: "0.9rem", 
+                sx={{
+                  fontSize: "0.9rem",
                   color: "text.secondary",
-                  mb: 2 
+                  mb: 2,
                 }}
               >
                 Logger Settings
@@ -818,7 +660,10 @@ function Settings() {
                     label="Max Log Lines"
                     value={config.logger.maxLogLines}
                     onChange={(e) =>
-                      updateNested("logger.maxLogLines", parseInt(e.target.value))
+                      updateNested(
+                        "logger.maxLogLines",
+                        parseInt(e.target.value),
+                      )
                     }
                     variant="outlined"
                   />
@@ -846,10 +691,7 @@ function Settings() {
                       <Switch
                         checked={config.logger.logSql}
                         onChange={(e) =>
-                          updateNested(
-                            "logger.logSql",
-                            e.target.checked,
-                          )
+                          updateNested("logger.logSql", e.target.checked)
                         }
                         color="primary"
                       />

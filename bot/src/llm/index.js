@@ -13,7 +13,7 @@ import { logger } from '../../../shared/utils/logger.js';
  * @returns {Promise<{text: string|null, usageMetadata: Object|null}>} Reply text and usage metadata or null if no content
  */
 export async function generateReply(prompt) {
-    const apiConfig = getApiConfig();
+    const apiConfig = await getApiConfig();
     const provider = apiConfig.provider || 'gemini'; // Default to gemini for backward compatibility
 
     switch (provider.toLowerCase()) {
@@ -34,7 +34,7 @@ export async function generateReply(prompt) {
  * @returns {Promise<Array<string>>} List of available model names
  */
 export async function getAvailableModels(overrideProvider) {
-    const apiConfig = getApiConfig();
+    const apiConfig = await getApiConfig();
     const provider = overrideProvider || apiConfig.provider || 'gemini'; // Default to gemini for backward compatibility
 
     switch (provider.toLowerCase()) {
@@ -53,8 +53,8 @@ export async function getAvailableModels(overrideProvider) {
  * Get the current provider name
  * @returns {string} Current provider name
  */
-export function getCurrentProvider() {
-    const apiConfig = getApiConfig();
+export async function getCurrentProvider() {
+    const apiConfig = await getApiConfig();
     return apiConfig.provider || 'gemini'; // Default to gemini for backward compatibility
 }
 
@@ -62,8 +62,8 @@ export function getCurrentProvider() {
  * Validate if the current provider configuration is valid
  * @returns {boolean} True if configuration is valid
  */
-export function validateProviderConfig() {
-    const apiConfig = getApiConfig();
+export async function validateProviderConfig() {
+    const apiConfig = await getApiConfig();
     const provider = apiConfig.provider || 'gemini';
 
     switch (provider.toLowerCase()) {

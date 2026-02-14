@@ -108,6 +108,20 @@ export async function setupSchema() {
                 promptTokens INTEGER,
                 responseTokens INTEGER,
                 timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+            );`,
+            `CREATE TABLE IF NOT EXISTS server_configs (
+                guildId TEXT PRIMARY KEY REFERENCES guilds(guildId) ON DELETE CASCADE,
+                config JSONB NOT NULL,
+                createdAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updatedAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+            );`,
+            `CREATE INDEX IF NOT EXISTS idx_server_configs_guildId ON server_configs(guildId);`,
+            `CREATE INDEX IF NOT EXISTS idx_server_configs_updated_at ON server_configs(updatedAt);`,
+            `CREATE TABLE IF NOT EXISTS global_config (
+                id TEXT PRIMARY KEY DEFAULT 'global',
+                config JSONB NOT NULL,
+                createdAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updatedAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );`
         ];
 
