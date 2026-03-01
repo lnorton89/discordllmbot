@@ -290,19 +290,19 @@ export interface HypergraphEdge {
   importance: number;
   accesscount: number;
   createdat: string;
-  members?: Array<{
+  members?: {
     nodetype: string;
     name: string;
     role: string;
     weight: number;
-  }>;
+  }[];
 }
 
 export interface HypergraphStats {
-  nodesByType: Array<{ nodetype: string; count: string | number }>;
-  edgesByType: Array<{ edgetype: string; count: string | number; avgurgency: number }>;
-  topEntities: Array<{ nodetype: string; name: string; memorycount: number }>;
-  channels: Array<{ channelid: string; count: number }>;
+  nodesByType: { nodetype: string; count: string | number }[];
+  edgesByType: { edgetype: string; count: string | number; avgurgency: number }[];
+  topEntities: { nodetype: string; name: string; memorycount: number }[];
+  channels: { channelid: string; count: number }[];
   totalNodes: number;
   totalEdges: number;
 }
@@ -359,19 +359,19 @@ export interface RssFeed {
   id: number;
   url: string;
   name: string;
-  intervalminutes: number;
+  intervalMinutes: number;
   enabled: boolean;
-  lastfetchedat?: string;
+  lastFetchedAt?: string;
 }
 
 export interface IngestedDocument {
   id: number;
   filename: string;
-  filetype: string;
+  fileType: string;
   status: 'pending' | 'processing' | 'completed' | 'error';
-  errormessage?: string;
-  createdat: string;
-  processedat?: string;
+  errorMessage?: string;
+  createdAt: string;
+  processedAt?: string;
 }
 
 export const knowledgeApi = {

@@ -9,9 +9,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
   const env = loadEnv(mode, process.cwd(), '')
-  // Use VITE_API_URL if set, otherwise try localhost:3000 for local dev
-  // In Docker, set VITE_API_URL=http://bot:3000 in .env
-  const apiTarget = env.VITE_API_URL || 'http://localhost:3000'
+  // Use API_PROXY_TARGET if set, otherwise try localhost:3000 for local dev
+  const apiTarget = env.API_PROXY_TARGET || 'http://localhost:3000'
 
   return {
     plugins: [react()],

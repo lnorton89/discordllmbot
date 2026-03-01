@@ -3,7 +3,7 @@
  * View and manage entities in the hypergraph
  * @module pages/Memory/EntityManager
  */
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -15,7 +15,6 @@ import {
   TableHead,
   TableRow,
   Chip,
-  Stack,
   TextField,
   InputAdornment,
   TablePagination,
@@ -55,13 +54,7 @@ export function EntityManager({ guildId }: EntityManagerProps) {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [orderBy, setSortBy] = useState<'name' | 'type' | 'memories'>('memories');
 
-  useEffect(() => {
-    if (guildId) {
-      loadNodes();
-    }
-  }, [guildId]);
-
-  const loadNodes = async () => {
+  const loadNodes = useCallback(async () => {
     setLoading(true);
     try {
       const response = await api.get(`/hypergraph/${guildId}/nodes`);
@@ -71,7 +64,13 @@ export function EntityManager({ guildId }: EntityManagerProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [guildId]);
+
+  useEffect(() => {
+    if (guildId) {
+      loadNodes();
+    }
+  }, [guildId, loadNodes]);
 
   const filteredNodes = useMemo(() => {
     return nodes.filter(node => 
@@ -127,12 +126,14 @@ export function EntityManager({ guildId }: EntityManagerProps) {
             setSearchTerm(e.target.value);
             setPage(0);
           }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ color: 'text.secondary' }} />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: 'text.secondary' }} />
+                </InputAdornment>
+              ),
+            }
           }}
         />
         <FormControl size="small" sx={{ minWidth: 150 }}>

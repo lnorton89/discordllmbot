@@ -74,7 +74,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
   }, [dbLogs]);
 
   useEffect(() => {
-    const socketUrl = API_CONFIG.BASE_URL;
+    const socketUrl = API_CONFIG.BASE_URL || window.location.origin;
     const socketInstance = io(socketUrl, {
         reconnection: SOCKET.RECONNECTION,
         reconnectionAttempts: SOCKET.RECONNECTION_ATTEMPTS,

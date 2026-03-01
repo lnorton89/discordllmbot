@@ -115,9 +115,9 @@ export default function Memory() {
       <Typography variant="h4" fontWeight="bold" gutterBottom>
         Memory Graph
       </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Explore the bot's hypergraph memory system - entities, relationships, and stored memories.
-      </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Explore the bot&apos;s hypergraph memory system - entities, relationships, and stored memories.
+        </Typography>
 
       {/* Server & Channel Selection */}
       <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>

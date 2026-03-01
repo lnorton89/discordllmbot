@@ -122,8 +122,6 @@ export function extractStructuralMemory(message: Message): ExtractedMemory | nul
     const content = message.content.trim();
     if (content.length < 3) return null; // Skip very short messages
 
-    const guildId = message.guild.id;
-    const channelId = message.channel.id;
     const authorId = message.author.id;
     const authorName = message.author.username;
 

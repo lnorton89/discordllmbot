@@ -47,7 +47,7 @@ export function createDatabaseRoutes(): Router {
             const db = await getDb();
 
             const columnsRes = await db.query(`
-                SELECT column_name, data_type, is_nullable,
+                SELECT information_schema.columns.column_name, data_type, is_nullable,
                        CASE WHEN pk.column_name IS NOT NULL THEN true ELSE false END as is_primary_key
                 FROM information_schema.columns
                 LEFT JOIN (
@@ -57,8 +57,8 @@ export function createDatabaseRoutes(): Router {
                     ON tc.constraint_name = kcu.constraint_name
                     WHERE tc.constraint_type = 'PRIMARY KEY'
                     AND tc.table_name = $1
-                ) pk ON columns.column_name = pk.column_name
-                WHERE table_name = $1
+                ) pk ON information_schema.columns.column_name = pk.column_name
+                WHERE information_schema.columns.table_name = $1
                 ORDER BY ordinal_position
             `, [tableName]);
 

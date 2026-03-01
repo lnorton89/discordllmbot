@@ -90,7 +90,7 @@ services:
     env_file:
       - ./.env
     environment:
-      - VITE_API_URL=http://bot:3000
+      - API_PROXY_TARGET=http://bot:3000
 
   sandbox:
     container_name: discordllmbot-sandbox

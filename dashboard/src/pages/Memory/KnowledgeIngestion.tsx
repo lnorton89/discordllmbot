@@ -3,7 +3,7 @@
  * Handles document uploads and RSS feed management
  * @module pages/Memory/KnowledgeIngestion
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -14,10 +14,8 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemSecondaryAction,
   IconButton,
   Chip,
-  Divider,
   CircularProgress,
   Dialog,
   DialogTitle,
@@ -33,7 +31,6 @@ import {
   RssFeed as RssIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
-  Refresh as RefreshIcon,
   Description as DocIcon,
   Error as ErrorIcon,
   CheckCircle as SuccessIcon,
@@ -52,13 +49,7 @@ export function KnowledgeIngestion({ guildId }: KnowledgeIngestionProps) {
   const [openRssDialog, setOpenRssDialog] = useState(false);
   const [newFeed, setNewRss] = useState({ name: '', url: '', intervalMinutes: 60 });
 
-  useEffect(() => {
-    if (guildId) {
-      loadData();
-    }
-  }, [guildId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [feedsRes, docsRes] = await Promise.all([
@@ -72,7 +63,13 @@ export function KnowledgeIngestion({ guildId }: KnowledgeIngestionProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [guildId]);
+
+  useEffect(() => {
+    if (guildId) {
+      loadData();
+    }
+  }, [guildId, loadData]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -170,8 +167,8 @@ export function KnowledgeIngestion({ guildId }: KnowledgeIngestionProps) {
                 <ListItem key={doc.id} divider>
                   <ListItemText
                     primary={doc.filename}
-                    secondary={new Date(doc.createdat).toLocaleString()}
-                    primaryTypographyProps={{ variant: 'body2', fontWeight: 'medium' }}
+                    secondary={new Date(doc.createdAt).toLocaleString()}
+                    slotProps={{ primary: { variant: 'body2', fontWeight: 'medium' } }}
                   />
                   <Box sx={{ ml: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                     {getStatusChip(doc.status)}
@@ -211,8 +208,8 @@ export function KnowledgeIngestion({ guildId }: KnowledgeIngestionProps) {
                 <ListItem key={feed.id} divider>
                   <ListItemText
                     primary={feed.name}
-                    secondary={`${feed.url} (${feed.intervalminutes}m)`}
-                    primaryTypographyProps={{ variant: 'body2', fontWeight: 'medium' }}
+                    secondary={`${feed.url} (${feed.intervalMinutes}m)`}
+                    slotProps={{ primary: { variant: 'body2', fontWeight: 'medium' } }}
                   />
                   <Stack direction="row" spacing={1} alignItems="center">
                     <FormControlLabel

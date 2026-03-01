@@ -3,13 +3,12 @@
  * Browse and search through stored memories
  * @module pages/Memory/MemoryBrowser
  */
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box,
   TextField,
   List,
   ListItem,
-  ListItemText,
   Chip,
   Stack,
   Pagination,
@@ -30,8 +29,6 @@ import {
 import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
-  Sort as SortIcon,
-  FilterList as FilterIcon,
   History as HistoryIcon,
   TrendingUp as UrgencyIcon,
   AutoAwesome as KnowledgeIcon,
@@ -52,11 +49,11 @@ interface Memory {
     filename?: string;
     [key: string]: unknown;
   };
-  members?: Array<{
+  members?: {
     nodetype: string;
     name: string;
     role: string;
-  }>;
+  }[];
 }
 
 interface MemoryBrowserProps {
@@ -76,13 +73,7 @@ export function MemoryBrowser({ guildId, channelId }: MemoryBrowserProps) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const memoriesPerPage = 15;
 
-  useEffect(() => {
-    if (guildId) {
-      loadMemories();
-    }
-  }, [guildId, channelId]);
-
-  const loadMemories = async () => {
+  const loadMemories = useCallback(async () => {
     setLoading(true);
     try {
       // Fetch more memories to allow better local filtering/sorting
@@ -95,7 +86,13 @@ export function MemoryBrowser({ guildId, channelId }: MemoryBrowserProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [guildId, channelId]);
+
+  useEffect(() => {
+    if (guildId) {
+      loadMemories();
+    }
+  }, [guildId, channelId, loadMemories]);
 
   const processedMemories = useMemo(() => {
     let filtered = memories.filter(m =>

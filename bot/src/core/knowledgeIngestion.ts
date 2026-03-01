@@ -6,7 +6,7 @@
 
 import Parser from 'rss-parser';
 import * as pdfModule from 'pdf-parse';
-import { createHyperedge, findOrCreateNode } from '@shared/storage/hypergraphPersistence.js';
+import { createHyperedge } from '@shared/storage/hypergraphPersistence.js';
 
 // Handle CommonJS/ESM interop for pdf-parse
 let pdf = (pdfModule as any).default || pdfModule;
@@ -111,7 +111,7 @@ export async function processRssFeed(guildId: string, feedId: number, url: strin
         for (const item of feed.items.slice(0, 5)) {
             // Check if this item has already been ingested
             const existing = await db.query(
-                "SELECT id FROM hyperedges WHERE guildId = $1 AND metadata->>'url' = $2",
+                'SELECT id FROM hyperedges WHERE guildId = $1 AND metadata->>\'url\' = $2',
                 [guildId, item.link]
             );
 

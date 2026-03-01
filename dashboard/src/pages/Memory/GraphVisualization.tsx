@@ -82,13 +82,7 @@ export function GraphVisualization({ guildId, channelId }: GraphVisualizationPro
   
   const fgRef = useRef<ForceGraphMethods>(null);
 
-  useEffect(() => {
-    if (guildId) {
-      loadGraphData();
-    }
-  }, [guildId, channelId]);
-
-  const loadGraphData = async () => {
+  const loadGraphData = useCallback(async () => {
     setLoading(true);
     try {
       const response = await api.get(`/hypergraph/${guildId}/graph`, {
@@ -100,7 +94,13 @@ export function GraphVisualization({ guildId, channelId }: GraphVisualizationPro
     } finally {
       setLoading(false);
     }
-  };
+  }, [guildId, channelId]);
+
+  useEffect(() => {
+    if (guildId) {
+      loadGraphData();
+    }
+  }, [guildId, channelId, loadGraphData]);
 
   // Transform raw data into graph format
   const graphData = useMemo(() => {
@@ -245,7 +245,7 @@ export function GraphVisualization({ guildId, channelId }: GraphVisualizationPro
           options={graphData.nodes}
           getOptionLabel={(option) => option.name}
           renderInput={(params) => (
-            <TextField {...params} label="Search entity..." InputProps={{ ...params.InputProps, startAdornment: <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} /> }} />
+            <TextField {...params} label="Search entity..." slotProps={{ input: { ...params.InputProps, startAdornment: <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} /> } }} />
           )}
           onChange={(_e, node) => node && handleNodeClick(node)}
         />

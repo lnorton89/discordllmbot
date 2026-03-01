@@ -31,7 +31,6 @@ import {
 } from '@mui/material';
 import {
   Message as MessageIcon,
-  Dns as DnsIcon,
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   TrendingUp as TrendingUpIcon,
