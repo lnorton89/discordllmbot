@@ -328,9 +328,10 @@ export async function saveGlobalConfig(config) {
             llmRetryAttempts, llmRetryBackoffMs,
             memoryMaxMessages, memoryMaxMessageAgeDays,
             loggerMaxLogLines, loggerLogReplyDecisions, loggerLogSql,
+            sandboxEnabled, sandboxTimeoutMs, sandboxAllowedCommands,
             updatedAt
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, CURRENT_TIMESTAMP)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, CURRENT_TIMESTAMP)
         ON CONFLICT (id)
         DO UPDATE SET
             botUsername = $2,
@@ -350,6 +351,9 @@ export async function saveGlobalConfig(config) {
             loggerMaxLogLines = $16,
             loggerLogReplyDecisions = $17,
             loggerLogSql = $18,
+            sandboxEnabled = $19,
+            sandboxTimeoutMs = $20,
+            sandboxAllowedCommands = $21,
             updatedAt = CURRENT_TIMESTAMP
     `, [
         'global',
@@ -370,6 +374,9 @@ export async function saveGlobalConfig(config) {
         config.logger.maxLogLines,
         config.logger.logReplyDecisions,
         config.logger.logSql,
+        config.sandbox.enabled,
+        config.sandbox.timeoutMs,
+        JSON.stringify(config.sandbox.allowedCommands),
     ]);
 }
 
