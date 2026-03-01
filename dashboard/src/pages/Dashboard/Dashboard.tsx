@@ -37,6 +37,7 @@ import {
   TrendingUp as TrendingUpIcon,
   EmojiEvents as EmojiEventsIcon,
   Analytics as AnalyticsIcon,
+  People as PeopleIcon,
 } from '@mui/icons-material';
 import type { SxProps } from '@mui/material';
 
@@ -262,7 +263,7 @@ function Dashboard({ health }: DashboardProps) {
                 </Grid>
                 <Grid size={{ xs: 6, sm: 2.4 }}>
                   <StatusItem
-                    icon={<DnsIcon />}
+                    icon={<PeopleIcon />}
                     label="Active Users"
                     value={overview?.stats?.active_users || (stats as AnalyticsResponse)?.stats24h?.active_users || 0}
                     color="secondary"

@@ -60,4 +60,4 @@ data
 
 ## Build output
 dist/
-build/ 
+build/ GEMINI.md

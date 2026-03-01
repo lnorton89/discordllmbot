@@ -267,4 +267,132 @@ export const databaseApi = {
   getRelationships: (): Promise<AxiosResponse<TableRelationship[]>> => api.get('/db/relationships'),
 };
 
+// ===========================================================================
+// Hypergraph Memory System
+// ===========================================================================
+
+export interface HypergraphNode {
+  id: number;
+  nodeid: string;
+  nodetype: string;
+  name: string;
+  metadata: Record<string, unknown>;
+}
+
+export interface HypergraphEdge {
+  id: number;
+  guildid: string;
+  channelid: string;
+  edgetype: string;
+  summary: string;
+  content?: string;
+  urgency: number;
+  importance: number;
+  accesscount: number;
+  createdat: string;
+  members?: Array<{
+    nodetype: string;
+    name: string;
+    role: string;
+    weight: number;
+  }>;
+}
+
+export interface HypergraphStats {
+  nodesByType: Array<{ nodetype: string; count: string | number }>;
+  edgesByType: Array<{ edgetype: string; count: string | number; avgurgency: number }>;
+  topEntities: Array<{ nodetype: string; name: string; memorycount: number }>;
+  channels: Array<{ channelid: string; count: number }>;
+  totalNodes: number;
+  totalEdges: number;
+}
+
+export interface GraphData {
+  nodes: HypergraphNode[];
+  edges: HypergraphEdge[];
+}
+
+/**
+ * Hypergraph memory endpoints
+ */
+export const memoryApi = {
+  /**
+   * Get hypergraph statistics for a guild
+   */
+  getStats: (guildId: string): Promise<AxiosResponse<HypergraphStats>> =>
+    api.get(`/hypergraph/${guildId}/stats`),
+  /**
+   * Get all nodes, optionally filtered by type
+   */
+  getNodes: (guildId: string, type?: string): Promise<AxiosResponse<HypergraphNode[]>> =>
+    api.get(`/hypergraph/${guildId}/nodes`, { params: { type } }),
+  /**
+   * Get memories for a specific channel or node
+   */
+  getMemories: (guildId: string, channelId: string, minUrgency = 0, limit = 20): Promise<AxiosResponse<HypergraphEdge[]>> =>
+    api.get(`/hypergraph/${guildId}/memories`, { params: { channelId, minUrgency, limit } }),
+  /**
+   * Get graph visualization data
+   */
+  getGraph: (guildId: string, channelId?: string, limit = 100): Promise<AxiosResponse<GraphData>> =>
+    api.get(`/hypergraph/${guildId}/graph`, { params: { channelId, limit } }),
+  /**
+   * Create a manual memory
+   */
+  createMemory: (guildId: string, data: unknown): Promise<AxiosResponse<{ id: number }>> =>
+    api.post(`/hypergraph/${guildId}/memories`, data),
+  /**
+   * Update memory configuration
+   */
+  updateConfig: (guildId: string, config: Record<string, unknown>): Promise<AxiosResponse<void>> =>
+    api.post(`/hypergraph/${guildId}/config`, config),
+  /**
+   * Run decay process
+   */
+  runDecay: (guildId: string, decayRate = 0.1, minUrgencyThreshold = 0.1): Promise<AxiosResponse<{ updated: number; pruned: number }>> =>
+    api.post(`/hypergraph/${guildId}/decay`, { decayRate, minUrgencyThreshold }),
+};
+
+// ==================== Knowledge Management ====================
+
+export interface RssFeed {
+  id: number;
+  url: string;
+  name: string;
+  intervalminutes: number;
+  enabled: boolean;
+  lastfetchedat?: string;
+}
+
+export interface IngestedDocument {
+  id: number;
+  filename: string;
+  filetype: string;
+  status: 'pending' | 'processing' | 'completed' | 'error';
+  errormessage?: string;
+  createdat: string;
+  processedat?: string;
+}
+
+export const knowledgeApi = {
+  getRssFeeds: (guildId: string): Promise<AxiosResponse<RssFeed[]>> =>
+    api.get(`/knowledge/${guildId}/rss`),
+  createRssFeed: (guildId: string, data: { url: string; name: string; intervalMinutes?: number }): Promise<AxiosResponse<RssFeed>> =>
+    api.post(`/knowledge/${guildId}/rss`, data),
+  updateRssFeed: (guildId: string, id: number, data: Partial<RssFeed>): Promise<AxiosResponse<RssFeed>> =>
+    api.patch(`/knowledge/${guildId}/rss/${id}`, data),
+  deleteRssFeed: (guildId: string, id: number): Promise<AxiosResponse<void>> =>
+    api.delete(`/knowledge/${guildId}/rss/${id}`),
+    getDocuments: (guildId: string): Promise<AxiosResponse<IngestedDocument[]>> => 
+      api.get(`/knowledge/${guildId}/documents`),
+    deleteDocument: (guildId: string, id: number): Promise<AxiosResponse<void>> =>
+      api.delete(`/knowledge/${guildId}/documents/${id}`),
+    uploadDocument: (guildId: string, file: File): Promise<AxiosResponse<IngestedDocument>> => {    const formData = new FormData();
+    formData.append('document', file);
+    return api.post(`/knowledge/${guildId}/upload`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+};
+
 export default api;

@@ -2,7 +2,7 @@
  * Message Create Event Handler
  *
  * Handles incoming Discord messages and decides whether to reply.
- * Manages context, relationships, and LLM interaction.
+ * Uses hypergraph memory system for long-term context and recent messages for continuity.
  *
  * @module bot/src/events/messageCreate
  */
@@ -10,7 +10,7 @@
 import { Client, Message } from 'discord.js';
 
 import { getApiConfig, getBotConfig, getMemoryConfig, getReplyBehavior } from '@shared/config/configLoader.js';
-import { loadContexts, logAnalyticsEvent, logBotReply } from '@shared/storage/persistence';
+import { loadContexts, logAnalyticsEvent, logBotReply } from '@shared/storage/persistence.js';
 import { logger } from '@shared/utils/logger.js';
 
 import { buildPrompt } from '@core/prompt.js';
@@ -19,13 +19,15 @@ import { addMessage } from '@memory/context.js';
 import { generateReply } from '@llm/index.js';
 import { getAllRelationships, getRelationship, GuildRelationships, Relationship } from '@personality/relationships.js';
 import { executeInSandbox, extractDockerCommand, isSandboxEnabled } from '@sandbox/index.js';
+import { createMemoryData } from '@memory/structuralExtractor.js';
+import { createHyperedge, getHypergraphConfig } from '@shared/storage/hypergraphPersistence.js';
 
 const SANDBOX_KEYWORDS = ['docker', 'sandbox', 'container', 'docker command'];
 
 /**
  * Handles the messageCreate Discord event.
  * Processes messages and generates replies when appropriate.
- * 
+ *
  * @param message - The Discord message object
  * @param client - The Discord client instance
  */
@@ -115,6 +117,20 @@ export async function handleMessageCreate(message: Message, client: Client): Pro
             message.content
         );
 
+        // Create hypergraph memory from message structure (no LLM call)
+        try {
+            const config = await getHypergraphConfig(guildId);
+            if (config.extractionEnabled) {
+                const memoryData = createMemoryData(message);
+                if (memoryData) {
+                    await createHyperedge(guildId, memoryData);
+                }
+            }
+        } catch (err) {
+            // Don't let hypergraph errors break message handling
+            logger.warn('Failed to create hypergraph memory (non-critical)', err);
+        }
+
         const { maxMessages } = memoryConfig;
         const context = (await loadContexts(guildId, message.channel.id, maxMessages)).slice(0, -1);
         const guildRelationships = getAllRelationships()[guildId] ?? ({} as GuildRelationships);
@@ -133,7 +149,9 @@ export async function handleMessageCreate(message: Message, client: Client): Pro
             userMessage: cleanMessage,
             username: message.author.username,
             botConfig,
-            guildId
+            guildId,
+            channelId: message.channel.id,
+            userId: message.author.id
         });
 
         const hasSandboxKeyword = SANDBOX_KEYWORDS.some(keyword => 

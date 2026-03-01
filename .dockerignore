@@ -1,0 +1,10 @@
+data/
+node_modules/
+bot/node_modules/
+dashboard/node_modules/
+docs/node_modules/
+shared/node_modules/
+.git/
+.env
+logs/
+dist/

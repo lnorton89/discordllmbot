@@ -19,17 +19,17 @@ import cors from 'cors';
 import express, { Express, Request, Response } from 'express';
 import { createServer, Server as HttpServer } from 'http';
 import { Server as SocketIOServer, Socket } from 'socket.io';
-
-import { getSqlLogEmitter } from '@shared/storage/persistence';
-import { logger } from '@shared/utils/logger.js';
-
 import {
     createAnalyticsRoutes,
     createConfigRoutes,
     createDatabaseRoutes,
     createGuildsRoutes,
+    createHypergraphRoutes,
+    createKnowledgeRoutes,
     createLlmRoutes,
 } from '@api/routes/index.js';
+import { logger } from '@shared/utils/logger.js';
+import { getSqlLogEmitter } from '@shared/storage/persistence.js';
 
 const LOG_FILE_PATH = path.join(process.cwd(), '..', 'logs', 'discordllmbot.log');
 
@@ -74,6 +74,8 @@ export function startApi(client: Client): { app: Express; io: SocketIOServer } {
     app.use('/api', createDatabaseRoutes());
     app.use('/api', createGuildsRoutes({ client }));
     app.use('/api', createLlmRoutes());
+    app.use('/api/hypergraph', createHypergraphRoutes());
+    app.use('/api/knowledge', createKnowledgeRoutes());
 
     // Health endpoint
     app.get('/api/health', (_req: Request, res: Response) => {

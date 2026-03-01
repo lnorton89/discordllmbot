@@ -236,6 +236,8 @@ export async function setupSchema() {
             `ALTER TABLE server_configs ADD COLUMN IF NOT EXISTS ignoreChannels JSONB DEFAULT '[]'::jsonb;`,
             `ALTER TABLE server_configs ADD COLUMN IF NOT EXISTS ignoreKeywords JSONB DEFAULT '[]'::jsonb;`,
             `ALTER TABLE server_configs ADD COLUMN IF NOT EXISTS guildSpecificChannels JSONB DEFAULT '{}'::jsonb;`,
+
+            // Analytics System
             `CREATE TABLE IF NOT EXISTS analytics_events (
                 id SERIAL PRIMARY KEY,
                 eventType TEXT NOT NULL,
@@ -244,10 +246,91 @@ export async function setupSchema() {
                 userId TEXT,
                 timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
                 metadata JSONB DEFAULT '{}'::jsonb
-            )`,
-            `CREATE INDEX IF NOT EXISTS idx_analytics_events_type ON analytics_events(eventType)`,
-            `CREATE INDEX IF NOT EXISTS idx_analytics_events_guild ON analytics_events(guildId)`,
-            `CREATE INDEX IF NOT EXISTS idx_analytics_events_timestamp ON analytics_events(timestamp)`
+            );`,
+            `CREATE INDEX IF NOT EXISTS idx_analytics_events_type ON analytics_events(eventType);`,
+            `CREATE INDEX IF NOT EXISTS idx_analytics_events_guild ON analytics_events(guildId);`,
+            `CREATE INDEX IF NOT EXISTS idx_analytics_events_timestamp ON analytics_events(timestamp);`,
+
+            // Hypergraph memory system
+            `CREATE TABLE IF NOT EXISTS hyper_nodes (
+                id SERIAL PRIMARY KEY,
+                guildId TEXT NOT NULL,
+                nodeId TEXT NOT NULL,
+                nodeType TEXT NOT NULL,
+                name TEXT NOT NULL,
+                metadata JSONB DEFAULT '{}'::jsonb,
+                createdAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updatedAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(guildId, nodeId, nodeType)
+            );`,
+            `CREATE INDEX IF NOT EXISTS idx_hyper_nodes_guild ON hyper_nodes(guildId);`,
+            `CREATE INDEX IF NOT EXISTS idx_hyper_nodes_type ON hyper_nodes(nodeType);`,
+
+            `CREATE TABLE IF NOT EXISTS hyperedges (
+                id SERIAL PRIMARY KEY,
+                guildId TEXT NOT NULL,
+                channelId TEXT NOT NULL,
+                edgeType TEXT NOT NULL,
+                summary TEXT NOT NULL,
+                content TEXT,
+                importance DOUBLE PRECISION DEFAULT 1.0,
+                urgency DOUBLE PRECISION DEFAULT 0.0,
+                accessCount INTEGER DEFAULT 0,
+                lastAccessedAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                sourceMessageId TEXT,
+                extractedAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                metadata JSONB DEFAULT '{}'::jsonb,
+                createdAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updatedAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+            );`,
+            `CREATE INDEX IF NOT EXISTS idx_hyperedges_guild ON hyperedges(guildId);`,
+            `CREATE INDEX IF NOT EXISTS idx_hyperedges_channel ON hyperedges(channelId);`,
+            `CREATE INDEX IF NOT EXISTS idx_hyperedges_urgency ON hyperedges(urgency DESC);`,
+
+            `CREATE TABLE IF NOT EXISTS hyperedge_memberships (
+                id SERIAL PRIMARY KEY,
+                hyperedgeId INTEGER NOT NULL REFERENCES hyperedges(id) ON DELETE CASCADE,
+                nodeId INTEGER NOT NULL REFERENCES hyper_nodes(id) ON DELETE CASCADE,
+                role TEXT NOT NULL,
+                weight DOUBLE PRECISION DEFAULT 1.0,
+                metadata JSONB DEFAULT '{}'::jsonb,
+                createdAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(hyperedgeId, nodeId, role)
+            );`,
+            `CREATE INDEX IF NOT EXISTS idx_hyperedge_memberships_edge ON hyperedge_memberships(hyperedgeId);`,
+            `CREATE INDEX IF NOT EXISTS idx_hyperedge_memberships_node ON hyperedge_memberships(nodeId);`,
+
+            `CREATE TABLE IF NOT EXISTS hypergraph_config (
+                guildId TEXT PRIMARY KEY,
+                extractionEnabled BOOLEAN DEFAULT TRUE,
+                decayRate DOUBLE PRECISION DEFAULT 0.1,
+                importanceBoostOnAccess DOUBLE PRECISION DEFAULT 0.05,
+                minUrgencyThreshold DOUBLE PRECISION DEFAULT 0.1,
+                maxMemoriesPerNode INTEGER DEFAULT 100,
+                createdAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updatedAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+            );`,
+            `CREATE TABLE IF NOT EXISTS rss_feeds (
+                id SERIAL PRIMARY KEY,
+                guildId TEXT NOT NULL REFERENCES guilds(guildId) ON DELETE CASCADE,
+                url TEXT NOT NULL,
+                name TEXT NOT NULL,
+                intervalMinutes INTEGER DEFAULT 60,
+                enabled BOOLEAN DEFAULT TRUE,
+                lastFetchedAt TIMESTAMPTZ,
+                createdAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updatedAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+            );`,
+            `CREATE TABLE IF NOT EXISTS ingested_documents (
+                id SERIAL PRIMARY KEY,
+                guildId TEXT NOT NULL REFERENCES guilds(guildId) ON DELETE CASCADE,
+                filename TEXT NOT NULL,
+                fileType TEXT NOT NULL,
+                status TEXT DEFAULT 'pending',
+                errorMessage TEXT,
+                createdAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                processedAt TIMESTAMPTZ
+            );`
         ];
 
         logger.info('setupSchema: Verifying and updating schema...');

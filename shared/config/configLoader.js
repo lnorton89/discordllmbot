@@ -234,8 +234,13 @@ export async function getBotConfig(guildId) {
     const globalConfig = await loadConfig();
     const serverConfig = guildId ? await getServerConfig(guildId) : null;
 
+    // Use nickname if provided and not empty, otherwise fallback to global bot persona username
+    const botName = (serverConfig?.nickname && serverConfig.nickname.trim() !== '') 
+        ? serverConfig.nickname 
+        : globalConfig.botPersona.username;
+
     return {
-        name: serverConfig?.nickname ?? globalConfig.botPersona.username,
+        name: botName,
         description: globalConfig.botPersona.description,
         globalRules: globalConfig.botPersona.globalRules,
         speakingStyle: serverConfig?.speakingStyle ?? DEFAULT_SERVER_CONFIG.speakingStyle,

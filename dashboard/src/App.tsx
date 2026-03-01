@@ -13,11 +13,12 @@ import {
   ListAlt as ListAltIcon,
   Storage as StorageIcon,
   Analytics as AnalyticsIcon,
+  Psychology as MemoryIcon,
 } from '@mui/icons-material';
 
 import theme from '@theme';
 import { SocketProvider } from '@context/SocketContext';
-import { Dashboard, Settings, Servers, Playground, Logs, Database, Analytics } from '@pages';
+import { Dashboard, Settings, Servers, Playground, Logs, Database, Analytics, Memory } from '@pages';
 import { ErrorBoundary } from '@components/common';
 import { Header, Sidebar, MainContent } from '@components/Layout';
 import { useHealth, useServers } from '@hooks';
@@ -26,6 +27,7 @@ const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: <DashboardIcon /> },
   { to: '/analytics', label: 'Analytics', icon: <AnalyticsIcon /> },
   { to: '/servers', label: 'Servers', icon: <DnsIcon /> },
+  { to: '/memory', label: 'Memory', icon: <MemoryIcon /> },
   { to: '/database', label: 'Database', icon: <StorageIcon /> },
   { to: '/playground', label: 'Playground', icon: <ChatIcon /> },
   { to: '/settings', label: 'Settings', icon: <SettingsIcon /> },
@@ -95,6 +97,7 @@ function AppContent() {
                 <Route path="/analytics" element={<Analytics servers={servers.map(s => ({ id: s.id, name: s.name }))} />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/servers" element={<Servers />} />
+                <Route path="/memory" element={<Memory />} />
                 <Route path="/database" element={<Database />} />
                 <Route path="/playground" element={<Playground />} />
                 <Route path="/logs" element={<Logs />} />
