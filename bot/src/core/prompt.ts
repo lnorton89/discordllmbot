@@ -127,7 +127,7 @@ export async function buildPrompt({
 
         // Also fetch general stats/top entities for broader context
         const stats = await getHypergraphStats(guildId);
-        const topEntities = stats.topEntities?.slice(0, 5).map((e: any) => e.name).join(', ') || '';
+        const topEntities = stats.topEntities?.slice(0, 5).map((e: { name: string }) => e.name).join(', ') || '';
 
         // Record access for retrieved memories (boosts importance)
         for (const memory of allMemories) {
@@ -141,8 +141,8 @@ export async function buildPrompt({
                 if (!m) return null;
                 const members = m.members || [];
                 const memberInfo = members
-                    .filter((mem: any) => mem && (mem.role === 'participant' || mem.role === 'subject' || mem.role === 'topic'))
-                    .map((mem: any) => mem.name)
+                    .filter((mem: { role?: string; name?: string } | null) => mem && (mem.role === 'participant' || mem.role === 'subject' || mem.role === 'topic'))
+                    .map((mem: { role?: string; name?: string } | null) => mem?.name)
                     .join(', ');
                 
                 // Use camelCase keys mapped by persistence layer

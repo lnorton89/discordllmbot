@@ -8,7 +8,7 @@
  */
 
 import { useContext } from 'react';
-import { SocketContext, type SocketContextValue } from '../context/SocketContext';
+import { SocketContext, type SocketContextValue } from '@context/SocketContext';
 
 export function useSocketContext(): SocketContextValue {
   const context = useContext(SocketContext);

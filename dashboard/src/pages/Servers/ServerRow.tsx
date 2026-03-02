@@ -28,10 +28,10 @@ import {
   Close as CloseIcon,
 } from '@mui/icons-material';
 
-import ServerConfig from './ServerConfig';
+import ServerConfig from '@pages/Servers/ServerConfig';
 import { formatDate } from '@utils';
-import Relationships from './Relationships';
-import Channels from './Channels';
+import Relationships from '@pages/Servers/Relationships';
+import Channels from '@pages/Servers/Channels';
 
 /**
  * ServerRow component displaying a server with expandable configuration.

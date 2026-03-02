@@ -4,7 +4,7 @@
  * @deprecated Use useSocketContext() from @contexts instead
  */
 
-import { useSocketContext } from './useSocketContext';
+import { useSocketContext } from '@hooks/useSocketContext';
 
 /**
  * Hook to access socket connection and bot restart status

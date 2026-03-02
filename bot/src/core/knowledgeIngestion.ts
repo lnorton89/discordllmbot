@@ -5,19 +5,17 @@
  */
 
 import Parser from 'rss-parser';
-import * as pdfModule from 'pdf-parse';
+import pdfModule, { type PDFParseResult } from 'pdf-parse';
 import { createHyperedge } from '@shared/storage/hypergraphPersistence.js';
 
 // Handle CommonJS/ESM interop for pdf-parse
-let pdf = (pdfModule as any).default || pdfModule;
-// If the import is an object but has a PDFParse function property, use that (observed behavior)
-if (typeof pdf !== 'function' && typeof (pdf as any).PDFParse === 'function') {
-    pdf = (pdf as any).PDFParse;
-}
-import { 
-    getRssFeeds, 
-    updateRssLastFetched, 
-    updateDocumentStatus 
+const pdf = typeof pdfModule === 'function' 
+    ? pdfModule 
+    : (pdfModule as unknown as { default?: typeof pdfModule }).default || pdfModule;
+import {
+    getRssFeeds,
+    updateRssLastFetched,
+    updateDocumentStatus
 } from '@shared/storage/knowledgePersistence.js';
 import { generateReply } from '@llm/index.js';
 import { logger } from '@shared/utils/logger.js';
@@ -57,35 +55,46 @@ function chunkText(text: string, maxLength: number = 1500): string[] {
     return chunks;
 }
 
+interface ExtractedEntity {
+    id: string;
+    name: string;
+    type: string;
+}
+
+interface ExtractedKnowledge {
+    summary: string;
+    entities: ExtractedEntity[];
+}
+
 /**
  * Uses LLM to extract structured knowledge for ingestion
  */
-async function extractKnowledge(text: string): Promise<{ summary: string, entities: any[] }> {
+async function extractKnowledge(text: string): Promise<ExtractedKnowledge> {
     if (!text || text.length < 10) return { summary: 'No content', entities: [] };
-    
+
     try {
         const prompt = `Analyze the following text and extract key knowledge for a hypergraph database.
         Return a JSON object with:
         1. "summary": A concise 1-sentence summary of the main fact.
         2. "entities": An array of objects with "name" and "type" (one of: topic, concept, event, user, channel).
-        
+
         TEXT:
         ${text.substring(0, 3000)}
-        
+
         RESPONSE (JSON ONLY):`;
-        
+
         const response = await generateReply(prompt);
-        
+
         // Clean the response to ensure it's valid JSON
         if (!response.text) {
             throw new Error('LLM returned no content');
         }
         const jsonStr = response.text.replace(/```json|```/g, '').trim();
         const data = JSON.parse(jsonStr);
-        
+
         return {
             summary: data.summary || 'Summary unavailable',
-            entities: (data.entities || []).map((e: any) => ({
+            entities: (data.entities || []).map((e: { name: string; type: string }) => ({
                 id: e.name.toLowerCase().replace(/\s+/g, '-'),
                 name: e.name,
                 type: e.type || 'topic'
@@ -105,7 +114,7 @@ export async function processRssFeed(guildId: string, feedId: number, url: strin
         const feed = await rssParser.parseURL(url);
         logger.info(`Processing RSS feed: ${feed.title} (${url})`);
 
-        const { getDb } = await import('../../../shared/storage/persistence.js');
+        const { getDb } = await import('@shared/storage/persistence.js');
         const db = await getDb();
 
         for (const item of feed.items.slice(0, 5)) {
@@ -154,10 +163,8 @@ export async function processDocument(guildId: string, docId: number, buffer: Bu
         const ext = filename.split('.').pop()?.toLowerCase();
 
         if (ext === 'pdf') {
-            const parser = new pdf({ data: buffer });
-            const data = await parser.getText();
+            const data: PDFParseResult = await pdf(buffer);
             text = data.text;
-            if (parser.destroy) await parser.destroy();
         } else if (ext === 'txt' || ext === 'md') {
             text = buffer.toString('utf-8');
         } else {
@@ -204,8 +211,8 @@ export async function processDocument(guildId: string, docId: number, buffer: Bu
  */
 export async function startRssInformer(guildId: string) {
     const feeds = await getRssFeeds(guildId);
-    const enabledFeeds = feeds.filter((f: { enabled: boolean }) => f.enabled);
-    
+    const enabledFeeds = feeds.filter((f) => f.enabled);
+
     for (const feed of enabledFeeds) {
         // Simple check: if never fetched or interval passed (with 10s leeway)
         const lastFetched = feed.lastFetchedAt ? new Date(feed.lastFetchedAt).getTime() : 0;

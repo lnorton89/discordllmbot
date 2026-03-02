@@ -321,7 +321,7 @@ function MemoryListItem({ memory, expanded, onToggle, getEdgeTypeColor }: Memory
           <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5 }}>
             {memory.members?.map((member, idx) => {
               // Try both camelCase and lowercase - PostgreSQL may lowercase JSON keys
-              const nodeType = (member as any).nodeType || (member as any).nodetype || 'unknown';
+              const nodeType = ((member as Record<string, unknown>).nodeType as string) || ((member as Record<string, unknown>).nodetype as string) || 'unknown';
               const name = member.name || 'unnamed';
               return (
                 <Chip

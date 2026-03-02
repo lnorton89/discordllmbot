@@ -32,23 +32,25 @@ import ForceGraph2D, { ForceGraphMethods } from 'react-force-graph-2d';
 import api from '@services/api';
 
 interface GraphNode {
-  id: number;
-  nodeId: string;
-  nodeType: string;
-  name: string;
-  metadata: Record<string, unknown>;
-  val?: number; // For node sizing
+  id: number | string;
+  nodeId?: string;
+  nodeType?: string;
+  name?: string;
+  metadata?: Record<string, unknown>;
+  val?: number;
   color?: string;
   x?: number;
   y?: number;
+  [key: string]: unknown;
 }
 
 interface GraphLink {
   source: number | string | GraphNode;
   target: number | string | GraphNode;
-  value: number; // For link thickness
-  label: string;
-  type: string;
+  value?: number;
+  label?: string;
+  type?: string;
+  [key: string]: unknown;
 }
 
 interface GraphVisualizationProps {
@@ -73,13 +75,13 @@ const EDGE_COLORS: Record<string, string> = {
 };
 
 export function GraphVisualization({ guildId, channelId }: GraphVisualizationProps) {
-  const [rawData, setRawData] = useState<{ nodes: GraphNode[], edges: any[] } | null>(null);
+  const [rawData, setRawData] = useState<{ nodes: GraphNode[], edges: GraphLink[] } | null>(null);
   const [filterType, setFilterType] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [highlightNodes, setHighlightNodes] = useState(new Set<GraphNode | string | number>());
   const [highlightLinks, setHighlightLinks] = useState(new Set<GraphLink>());
   const [hoverNode, setHoverNode] = useState<GraphNode | null>(null);
-  
+
   const fgRef = useRef<ForceGraphMethods>(null);
 
   const loadGraphData = useCallback(async () => {
@@ -106,7 +108,7 @@ export function GraphVisualization({ guildId, channelId }: GraphVisualizationPro
   const graphData = useMemo(() => {
     if (!rawData) return { nodes: [], links: [] };
 
-    const nodes: GraphNode[] = rawData.nodes.map((n: any) => ({
+    const nodes: GraphNode[] = rawData.nodes.map((n: GraphNode) => ({
       ...n,
       color: NODE_COLORS[n.nodeType] || '#6b7280',
       val: 2, // Default base size
@@ -115,24 +117,24 @@ export function GraphVisualization({ guildId, channelId }: GraphVisualizationPro
     const links: GraphLink[] = [];
     const nodeSet = new Set(nodes.map(n => n.id));
 
-    rawData.edges.forEach((edge: any) => {
-      const edgeNodes = (edge.connections || [])
-        .map((c: any) => c.nodeid)
+    rawData.edges.forEach((edge: GraphLink) => {
+      const edgeNodes = ((edge as unknown as { connections?: { nodeid: number }[] }).connections || [])
+        .map((c: { nodeid: number }) => c.nodeid)
         .filter((id: number) => nodeSet.has(id));
 
-      const type = edge.edgeType || 'fact';
+      const type = (edge as unknown as { edgeType?: string }).edgeType || 'fact';
 
       for (let i = 0; i < edgeNodes.length; i++) {
         for (let j = i + 1; j < edgeNodes.length; j++) {
           links.push({
             source: edgeNodes[i],
             target: edgeNodes[j],
-            value: edge.importance || 1,
-            label: edge.summary,
+            value: (edge as unknown as { importance?: number }).importance || 1,
+            label: (edge as unknown as { summary?: string }).summary || '',
             type: type,
           });
         }
-        
+
         const node = nodes.find(n => n.id === edgeNodes[i]);
         if (node) node.val = (node.val || 2) + 0.8;
       }
@@ -155,16 +157,18 @@ export function GraphVisualization({ guildId, channelId }: GraphVisualizationPro
     setHighlightLinks(new Set(highlightLinks));
   };
 
-  const handleNodeHover = (node: any) => {
+  const handleNodeHover = (node: GraphNode | null) => {
     highlightNodes.clear();
     highlightLinks.clear();
     if (node) {
       highlightNodes.add(node.id);
-      graphData.links.forEach((link: any) => {
-        if (link.source.id === node.id || link.target.id === node.id) {
+      graphData.links.forEach((link: GraphLink) => {
+        const sourceId = typeof link.source === 'object' && link.source !== null ? (link.source as GraphNode).id : link.source;
+        const targetId = typeof link.target === 'object' && link.target !== null ? (link.target as GraphNode).id : link.target;
+        if (sourceId === node.id || targetId === node.id) {
           highlightLinks.add(link);
-          highlightNodes.add(link.source.id);
-          highlightNodes.add(link.target.id);
+          highlightNodes.add(sourceId);
+          highlightNodes.add(targetId);
         }
       });
     }
@@ -172,27 +176,29 @@ export function GraphVisualization({ guildId, channelId }: GraphVisualizationPro
     updateHighlight();
   };
 
-  const handleLinkHover = (link: any) => {
+  const handleLinkHover = (link: GraphLink | null) => {
     highlightNodes.clear();
     highlightLinks.clear();
     if (link) {
       highlightLinks.add(link);
-      highlightNodes.add(link.source.id);
-      highlightNodes.add(link.target.id);
+      const sourceId = typeof link.source === 'object' && link.source !== null ? (link.source as GraphNode).id : link.source;
+      const targetId = typeof link.target === 'object' && link.target !== null ? (link.target as GraphNode).id : link.target;
+      highlightNodes.add(sourceId);
+      highlightNodes.add(targetId);
     }
     updateHighlight();
   };
 
-  const handleNodeClick = (node: any) => {
-    fgRef.current.centerAt(node.x, node.y, 1000);
-    fgRef.current.zoom(3, 1000);
+  const handleNodeClick = (node: GraphNode) => {
+    fgRef.current?.centerAt(node.x, node.y, 1000);
+    fgRef.current?.zoom(3, 1000);
   };
 
   const handleReset = () => {
-    fgRef.current.zoomToFit(400);
+    fgRef.current?.zoomToFit(400);
   };
 
-  const paintNode = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+  const paintNode = useCallback((node: GraphNode, ctx: CanvasRenderingContext2D, globalScale: number) => {
     const isHighlighted = highlightNodes.has(node.id);
     const radius = Math.sqrt(node.val || 2) * (isHighlighted ? 3 : 2.5);
     
@@ -316,8 +322,8 @@ export function GraphVisualization({ guildId, channelId }: GraphVisualizationPro
           nodeRelSize={6}
           nodeCanvasObject={paintNode}
           nodeCanvasObjectMode={() => 'replace'}
-          linkWidth={link => (highlightLinks.has(link) ? 3 : Math.sqrt(link.value) * 0.8)}
-          linkColor={link => highlightLinks.has(link) ? '#fff' : `${EDGE_COLORS[link.type] || '#ffffff22'}44`}
+          linkWidth={link => (highlightLinks.has(link) ? 3 : Math.sqrt((link.value as number) || 1) * 0.8)}
+          linkColor={link => highlightLinks.has(link) ? '#fff' : `${EDGE_COLORS[(link.type as string) || 'fact'] || '#ffffff22'}44`}
           linkDirectionalParticles={link => highlightLinks.has(link) ? 4 : 0}
           linkDirectionalParticleWidth={2}
           linkDirectionalArrowLength={3}

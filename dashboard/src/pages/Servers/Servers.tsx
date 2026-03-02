@@ -23,7 +23,7 @@ import { useServers, useSocketContext } from '@hooks';
 import { serversApi, configApi } from '@services';
 import { isChannelIgnored, deepClone } from '@utils';
 import { EmptyState, ErrorBoundary } from '@components/common';
-import { ServerRow, EditRelationshipDialog } from './index';
+import { ServerRow, EditRelationshipDialog } from '@pages/Servers';
 import type { BotConfig } from '@types';
 
 /**

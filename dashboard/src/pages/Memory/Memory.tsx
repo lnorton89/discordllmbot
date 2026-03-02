@@ -25,10 +25,10 @@ import {
 } from '@mui/icons-material';
 import { serversApi } from '@services';
 import type { Server } from '@types';
-import { GraphVisualization } from './GraphVisualization';
-import { MemoryBrowser } from './MemoryBrowser';
-import { EntityManager } from './EntityManager';
-import { KnowledgeIngestion } from './KnowledgeIngestion';
+import { GraphVisualization } from '@pages/Memory/GraphVisualization';
+import { MemoryBrowser } from '@pages/Memory/MemoryBrowser';
+import { EntityManager } from '@pages/Memory/EntityManager';
+import { KnowledgeIngestion } from '@pages/Memory/KnowledgeIngestion';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -84,7 +84,7 @@ export default function Memory() {
   const loadChannels = async (guildId: string) => {
     try {
       const response = await serversApi.getChannels(guildId);
-      const serverChannels = response.data.map((ch: any) => ({ id: ch.id, name: ch.name }));
+      const serverChannels = response.data.map((ch: { id: string; name: string }) => ({ id: ch.id, name: ch.name }));
 
       // Always include the system ingestion channel for global knowledge
       setChannels([

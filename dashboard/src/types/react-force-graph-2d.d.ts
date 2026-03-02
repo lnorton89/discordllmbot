@@ -5,21 +5,37 @@
 declare module 'react-force-graph-2d' {
   import { FC, RefObject } from 'react';
 
+  interface GraphNode {
+    id: number | string;
+    x?: number;
+    y?: number;
+    val?: number;
+    color?: string;
+    [key: string]: unknown;
+  }
+
+  interface GraphLink {
+    source: number | string | GraphNode;
+    target: number | string | GraphNode;
+    value?: number;
+    [key: string]: unknown;
+  }
+
   interface ForceGraphMethods {
     centerAt(x?: number, y?: number, durationMs?: number): this;
     zoom(zoom?: number, durationMs?: number): this;
-    zoomToFit(durationMs?: number, padding?: number, nodeFilter?: (node: any) => boolean): this;
+    zoomToFit(durationMs?: number, padding?: number, nodeFilter?: (node: GraphNode) => boolean): this;
     pauseAnimation(): this;
     resumeAnimation(): this;
     width(): number;
     width(width: number): this;
     height(): number;
     height(height: number): this;
-    graphData(): { nodes: any[]; links: any[] };
-    graphData(data: { nodes: any[]; links: any[] }): this;
-    onNodeClick(callback: (node: any, event: MouseEvent) => void): this;
-    onNodeDrag(callback: (node: any) => void): this;
-    onNodeDragEnd(callback: (node: any) => void): this;
+    graphData(): { nodes: GraphNode[]; links: GraphLink[] };
+    graphData(data: { nodes: GraphNode[]; links: GraphLink[] }): this;
+    onNodeClick(callback: (node: GraphNode, event: MouseEvent) => void): this;
+    onNodeDrag(callback: (node: GraphNode) => void): this;
+    onNodeDragEnd(callback: (node: GraphNode) => void): this;
     onBackgroundClick(callback: (event: MouseEvent) => void): this;
     onEngineStop(callback: () => void): this;
   }
@@ -27,30 +43,30 @@ declare module 'react-force-graph-2d' {
   interface ForceGraphProps {
     width?: number;
     height?: number;
-    graphData?: { nodes: any[]; links: any[] };
-    nodeLabel?: string | ((node: any) => string);
-    nodeColor?: string | ((node: any) => string);
-    nodeVal?: string | ((node: any) => number);
+    graphData?: { nodes: GraphNode[]; links: GraphLink[] };
+    nodeLabel?: string | ((node: GraphNode) => string);
+    nodeColor?: string | ((node: GraphNode) => string);
+    nodeVal?: string | ((node: GraphNode) => number);
     nodeRelSize?: number;
-    nodeCanvasObject?: (node: any, ctx: CanvasRenderingContext2D, globalScale: number) => void;
-    nodeCanvasObjectMode?: string | ((node: any) => string);
-    linkLabel?: string | ((link: any) => string);
-    linkColor?: string | ((link: any) => string);
-    linkWidth?: string | number | ((link: any) => number);
-    linkDirectionalArrowLength?: number | ((link: any) => number);
-    linkDirectionalArrowColor?: string | ((link: any) => string);
-    linkDirectionalArrowRelPos?: number | ((link: any) => number);
-    linkCurvature?: number | ((link: any) => number);
-    linkDirectionalParticles?: number | ((link: any) => number);
-    linkDirectionalParticleSpeed?: number | ((link: any) => number);
-    linkDirectionalParticleColor?: string | ((link: any) => string);
-    linkDirectionalParticleWidth?: number | ((link: any) => number);
+    nodeCanvasObject?: (node: GraphNode, ctx: CanvasRenderingContext2D, globalScale: number) => void;
+    nodeCanvasObjectMode?: string | ((node: GraphNode) => string);
+    linkLabel?: string | ((link: GraphLink) => string);
+    linkColor?: string | ((link: GraphLink) => string);
+    linkWidth?: string | number | ((link: GraphLink) => number);
+    linkDirectionalArrowLength?: number | ((link: GraphLink) => number);
+    linkDirectionalArrowColor?: string | ((link: GraphLink) => string);
+    linkDirectionalArrowRelPos?: number | ((link: GraphLink) => number);
+    linkCurvature?: number | ((link: GraphLink) => number);
+    linkDirectionalParticles?: number | ((link: GraphLink) => number);
+    linkDirectionalParticleSpeed?: number | ((link: GraphLink) => number);
+    linkDirectionalParticleColor?: string | ((link: GraphLink) => string);
+    linkDirectionalParticleWidth?: number | ((link: GraphLink) => number);
     backgroundColor?: string;
-    onNodeClick?: (node: any, event: MouseEvent) => void;
-    onNodeDrag?: (node: any) => void;
-    onNodeDragEnd?: (node: any) => void;
-    onNodeHover?: (node: any | null) => void;
-    onLinkHover?: (link: any | null) => void;
+    onNodeClick?: (node: GraphNode) => void;
+    onNodeDrag?: (node: GraphNode) => void;
+    onNodeDragEnd?: (node: GraphNode) => void;
+    onNodeHover?: (node: GraphNode | null) => void;
+    onLinkHover?: (link: GraphLink | null) => void;
     onBackgroundClick?: (event: MouseEvent) => void;
     onEngineStop?: () => void;
     cooldownTicks?: number;
@@ -62,7 +78,7 @@ declare module 'react-force-graph-2d' {
     resumeAnimation?: () => void;
     centerAt?: (x?: number, y?: number, durationMs?: number) => void;
     zoom?: (zoom?: number, durationMs?: number) => void;
-    zoomToFit?: (durationMs?: number, padding?: number, nodeFilter?: (node: any) => boolean) => void;
+    zoomToFit?: (durationMs?: number, padding?: number, nodeFilter?: (node: GraphNode) => boolean) => void;
     getGraphBbox?: () => { x: [number, number]; y: [number, number] };
     ref?: RefObject<ForceGraphMethods>;
   }
