@@ -22,7 +22,10 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", "build/**", ".vitepress/dist/**"],
+      "outputs": [
+        "dist/**",
+        ".vitepress/dist/**"
+      ],
       "cache": true
     },
     "lint": {
