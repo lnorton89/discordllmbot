@@ -104,10 +104,52 @@ declare module '@shared/storage/knowledgePersistence.js' {
 
 interface ServerConfig {
   guildId: string;
+  nickname?: string;
+  speakingStyle?: string[];
+  replyBehavior?: {
+    replyProbability?: number;
+    minDelayMs?: number;
+    maxDelayMs?: number;
+    mentionOnly?: boolean;
+    ignoreUsers?: string[];
+    ignoreChannels?: string[];
+    ignoreKeywords?: string[];
+    guildSpecificChannels?: Record<string, unknown>;
+  };
   [key: string]: unknown;
 }
 
 interface GlobalConfig {
+  botPersona?: {
+    username?: string;
+    description?: string;
+    globalRules?: string[];
+  };
+  llm?: {
+    provider?: string;
+    geminiModel?: string;
+    ollamaModel?: string;
+    qwenModel?: string;
+    geminiApiKey?: string;
+    ollamaApiKey?: string;
+    qwenApiKey?: string;
+    retryAttempts?: number;
+    retryBackoffMs?: number;
+  };
+  memory?: {
+    maxMessages?: number;
+    maxMessageAgeDays?: number;
+  };
+  logger?: {
+    maxLogLines?: number;
+    logReplyDecisions?: boolean;
+    logSql?: boolean;
+  };
+  sandbox?: {
+    enabled?: boolean;
+    timeoutMs?: number;
+    allowedCommands?: string[];
+  };
   [key: string]: unknown;
 }
 
@@ -185,6 +227,8 @@ declare module '@shared/storage/persistence.js' {
   export function getDb(): Promise<DbPool>;
   export function getSqlLogEmitter(): SqlLogEmitter;
   export function resetPoolWrapper(): void;
+  export function setSqlLoggingEnabled(enabled: boolean): void;
+  export function isSqlLoggingEnabled(): boolean;
 }
 
 declare module '@shared/storage/database.js' {
@@ -273,15 +317,15 @@ interface LoggerConfig {
 }
 
 declare module '@shared/config/configLoader.js' {
-  export function loadConfig(): Promise<Record<string, unknown>>;
+  export function loadConfig(): Promise<GlobalConfig>;
   export function getServerConfig(guildId: string): Promise<ServerConfig>;
   export function updateServerConfig(guildId: string, newConfig: ServerConfig): Promise<void>;
-  export function reloadConfig(): Promise<Record<string, unknown>>;
+  export function reloadConfig(): Promise<GlobalConfig>;
   export function getBotConfig(guildId: string): Promise<BotConfig>;
   export function getMemoryConfig(): Promise<MemoryConfig>;
   export function getGlobalMemoryConfig(): Promise<MemoryConfig>;
   export function getApiConfig(): Promise<ApiConfig>;
-  export function getReplyBehavior(guildId: string): Promise<string>;
+  export function getReplyBehavior(guildId: string): Promise<ServerConfig['replyBehavior']>;
   export function getLoggerConfig(): Promise<LoggerConfig>;
   export function getSandboxConfig(): Promise<SandboxConfig>;
   export function setSqlLoggingEnabled(enabled: boolean): void;

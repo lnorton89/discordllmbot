@@ -160,7 +160,9 @@ export function startApi(client: Client): { app: Express; io: SocketIOServer } {
 
     // SQL log streaming
     const sqlLogEmitter = getSqlLogEmitter();
-    sqlLogEmitter.on('query', (logLine: string, data: { query: string; params?: unknown[]; duration: number; error?: string }) => {
+    sqlLogEmitter.on('query', (...args: unknown[]) => {
+        const logLine = typeof args[0] === 'string' ? args[0] : String(args[0]);
+        const data = typeof args[1] === 'object' ? args[1] as { query: string; params?: unknown[]; duration: number; error?: string } : {};
         const timestamp = new Date().toISOString();
         const jsonStr = JSON.stringify(data).replace(/\n/g, '\\n').replace(/\r/g, '\\r');
         const fullLogLine = `[${timestamp}] [SQL] ${logLine} ${jsonStr}`;
@@ -169,8 +171,9 @@ export function startApi(client: Client): { app: Express; io: SocketIOServer } {
     });
 
     // General log streaming
-    logger.onLog((logEntry: { timestamp: string; level: string; message: string; formatted: string }) => {
-        if (io) {
+    logger.onLog((...args: unknown[]) => {
+        const logEntry = typeof args[0] === 'object' && args[0] !== null ? args[0] as { timestamp: string; level: string; message: string; formatted: string } : null;
+        if (io && logEntry && logEntry.formatted) {
             io.emit('log', logEntry.formatted);
         }
     });

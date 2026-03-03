@@ -17,11 +17,13 @@ declare global {
         buffer: Buffer;
       }
     }
-    
+
     interface Request {
       file?: Express.Multer.File;
       files?: Express.Multer.File[];
     }
+
+    type RequestHandler = (req: Request, res: Response, next: () => void) => void;
   }
 }
 

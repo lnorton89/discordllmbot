@@ -5,7 +5,7 @@
  */
 
 import Parser from 'rss-parser';
-import pdfModule, { type PDFParseResult } from 'pdf-parse';
+import pdfModule from 'pdf-parse';
 import { createHyperedge } from '@shared/storage/hypergraphPersistence.js';
 
 // Handle CommonJS/ESM interop for pdf-parse
@@ -117,7 +117,8 @@ export async function processRssFeed(guildId: string, feedId: number, url: strin
         const { getDb } = await import('@shared/storage/persistence.js');
         const db = await getDb();
 
-        for (const item of feed.items.slice(0, 5)) {
+        const items = Array.isArray(feed.items) ? feed.items : [];
+        for (const item of items.slice(0, 5)) {
             // Check if this item has already been ingested
             const existing = await db.query(
                 'SELECT id FROM hyperedges WHERE guildId = $1 AND metadata->>\'url\' = $2',
@@ -158,12 +159,12 @@ export async function processRssFeed(guildId: string, feedId: number, url: strin
 export async function processDocument(guildId: string, docId: number, buffer: Buffer, filename: string) {
     try {
         await updateDocumentStatus(docId, { status: 'processing' });
-        
+
         let text = '';
         const ext = filename.split('.').pop()?.toLowerCase();
 
         if (ext === 'pdf') {
-            const data: PDFParseResult = await pdf(buffer);
+            const data = await pdf(buffer);
             text = data.text;
         } else if (ext === 'txt' || ext === 'md') {
             text = buffer.toString('utf-8');

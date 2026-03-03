@@ -49,7 +49,8 @@ export async function handleMessageCreate(message: Message, client: Client): Pro
     const memoryConfig = await getMemoryConfig();
     const replyBehavior = await getReplyBehavior(guildId);
 
-    const guildSpecificChannels = (replyBehavior.guildSpecificChannels as Record<string, { ignored?: string[] }>) ?? {};
+    const guildSpecificChannelsRaw = replyBehavior.guildSpecificChannels as Record<string, { ignored?: string[] }> | undefined;
+    const guildSpecificChannels = guildSpecificChannelsRaw ?? {};
     const guildIgnoredChannels = guildSpecificChannels[guildId]?.ignored ?? [];
     const isChannelIgnored = guildIgnoredChannels.includes(message.channel.id);
 
@@ -61,11 +62,14 @@ export async function handleMessageCreate(message: Message, client: Client): Pro
         return;
     }
 
+    const mentionOnly = typeof replyBehavior.mentionOnly === 'boolean' ? replyBehavior.mentionOnly : true;
+    const replyProbability = typeof replyBehavior.replyProbability === 'number' ? replyBehavior.replyProbability : 1.0;
+
     logger.info('Loaded message handling config', {
         guildId,
         botName: botConfig.name,
-        mentionOnly: replyBehavior.mentionOnly,
-        replyProbability: replyBehavior.replyProbability,
+        mentionOnly,
+        replyProbability,
     });
 
     logger.message(`@mention from ${message.author.username} in #${channelName}: "${cleanMessage}"`);
@@ -154,14 +158,14 @@ export async function handleMessageCreate(message: Message, client: Client): Pro
             userId: message.author.id
         });
 
-        const hasSandboxKeyword = SANDBOX_KEYWORDS.some(keyword => 
+        const hasSandboxKeyword = SANDBOX_KEYWORDS.some(keyword =>
             cleanMessage.toLowerCase().includes(keyword)
         );
-        
+
         const hasDockerCommandIntent = cleanMessage.toLowerCase().includes('docker command');
-        const requiresMention = replyBehavior.mentionOnly;
-        
-        const isSandboxRequest = !requiresMention 
+        const requiresMention = mentionOnly;
+
+        const isSandboxRequest = !requiresMention
             ? (hasSandboxKeyword || hasDockerCommandIntent)
             : (isMentioned && (hasSandboxKeyword || hasDockerCommandIntent));
 
