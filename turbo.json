@@ -1,0 +1,63 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [".env"],
+  "globalEnv": [
+    "DISCORD_TOKEN",
+    "DISCORD_CLIENT_ID",
+    "GEMINI_API_KEY",
+    "OLLAMA_API_URL",
+    "QWEN_API_KEY",
+    "QWEN_OAUTH_CLIENT_ID",
+    "POSTGRES_DB",
+    "POSTGRES_USER",
+    "POSTGRES_PASSWORD",
+    "POSTGRES_PORT",
+    "DATABASE_URL",
+    "PGADMIN_DEFAULT_EMAIL",
+    "PGADMIN_DEFAULT_PASSWORD",
+    "API_PORT",
+    "DASHBOARD_PORT",
+    "DOCS_PORT"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "build/**", ".vitepress/dist/**"],
+      "cache": true
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^build"],
+      "cache": true
+    },
+    "type-check": {
+      "dependsOn": ["^build"],
+      "cache": true
+    },
+    "test": {
+      "dependsOn": ["build"],
+      "cache": false
+    },
+    "test:ui": {
+      "cache": false
+    },
+    "test:debug": {
+      "cache": false
+    },
+    "test:report": {
+      "cache": false
+    },
+    "docs:generate": {
+      "dependsOn": ["^build"],
+      "cache": true,
+      "outputs": ["docs/src/generated/**"]
+    },
+    "preview": {
+      "dependsOn": ["build"],
+      "cache": false
+    }
+  }
+}

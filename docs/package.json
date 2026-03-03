@@ -9,8 +9,8 @@
     "preview": "vitepress preview src",
     "generate": "node scripts/generate-docs.js"
   },
-"devDependencies": {
-  "@rollup/rollup-linux-x64-musl": "^4.34.8",
-  "typedoc": "^0.27.9",
-  "vitepress": "^1.6.4"
-}}
+  "devDependencies": {
+    "typedoc": "^0.27.9",
+    "vitepress": "^1.6.4"
+  }
+}

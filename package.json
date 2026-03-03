@@ -1,6 +1,7 @@
 {
   "name": "discordllmbot-monorepo",
   "version": "1.0.0",
+  "packageManager": "npm@10.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/lnorton89/discordllmbot.git"
@@ -21,23 +22,24 @@
     "dev": "docker-compose up -d bot db dashboard",
     "dev:build": "docker-compose up -d --build bot db dashboard",
     "dev:down": "docker-compose down",
-    "lint": "npm run lint:bot && npm run lint:dashboard && npm run lint:shared",
+    "lint": "turbo run lint",
     "lint:bot": "npm --prefix ./bot run lint",
     "lint:dashboard": "npm --prefix ./dashboard run lint",
     "lint:shared": "npm --prefix ./shared run lint",
-    "type-check": "npm run type-check:bot && npm run type-check:dashboard && npm run type-check:shared",
+    "type-check": "turbo run type-check",
     "type-check:bot": "npm --prefix ./bot run type-check",
     "type-check:dashboard": "npm --prefix ./dashboard run type-check",
     "type-check:shared": "npm --prefix ./shared run type-check",
-    "test": "npm --prefix ./dashboard run test",
-    "test:ui": "npm --prefix ./dashboard run test:ui",
-    "test:debug": "npm --prefix ./dashboard run test:debug",
-    "test:report": "npm --prefix ./dashboard run test:report",
-    "build": "docker-compose build",
+    "test": "turbo run test",
+    "test:ui": "turbo run test:ui",
+    "test:debug": "turbo run test:debug",
+    "test:report": "turbo run test:report",
+    "build": "turbo run build",
     "docs": "npm --prefix ./docs run dev",
-    "docs:generate": "npm --prefix ./docs run generate"
+    "docs:generate": "turbo run docs:generate"
   },
   "devDependencies": {
-    "ts-node-dev": "^2.0.0"
+    "ts-node-dev": "^2.0.0",
+    "turbo": "^2.0.0"
   }
 }
