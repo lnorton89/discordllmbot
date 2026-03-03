@@ -5,13 +5,12 @@
  */
 
 import Parser from 'rss-parser';
-import pdfModule from 'pdf-parse';
 import { createHyperedge } from '@shared/storage/hypergraphPersistence.js';
 
 // Handle CommonJS/ESM interop for pdf-parse
-const pdf = typeof pdfModule === 'function' 
-    ? pdfModule 
-    : (pdfModule as unknown as { default?: typeof pdfModule }).default || pdfModule;
+const pdfModule = await import('pdf-parse');
+const pdf = pdfModule.default || pdfModule;
+
 import {
     getRssFeeds,
     updateRssLastFetched,

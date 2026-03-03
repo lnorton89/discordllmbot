@@ -41,7 +41,7 @@ async function startBot(): Promise<void> {
     let cleanupInterval: NodeJS.Timeout | null = null;
 
     try {
-        const { setSqlLoggingEnabled } = await import('@shared/config/configLoader.js');
+        const { setSqlLoggingEnabled, resetPoolWrapper } = await import('@shared/storage/persistence.js');
         const { loadConfig, getGlobalMemoryConfig } = await import('@shared/config/configLoader.js');
         const fullConfig = await loadConfig();
 
