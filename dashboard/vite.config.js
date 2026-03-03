@@ -38,7 +38,19 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       watch: {
         usePolling: false,
-        ignored: ['**/node_modules', '**/.git', '**/dist'],
+        ignored: [
+          '**/node_modules',
+          '**/.git',
+          '**/dist',
+          '**/tests',
+          '**/test',
+          '**/__tests__',
+          '**/*.test.*',
+          '**/*.spec.*',
+          '**/fixtures',
+          '**/playwright-report',
+          '**/test-results',
+        ],
       },
       proxy: {
         '/api': {

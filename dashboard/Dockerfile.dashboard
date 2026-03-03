@@ -36,7 +36,7 @@ RUN npx turbo run build --filter=discordllmbot-dashboard
 RUN echo "VITE_API_URL=http://bot:3000" > ./dashboard/.env
 
 # Increase Vite heap size and disable polling to reduce memory
-ENV NODE_OPTIONS="--max-old-space-size=512"
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 ENV VITE_WATCH_USE_POLLING=false
 
 WORKDIR /usr/src/app/dashboard
