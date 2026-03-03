@@ -107,7 +107,7 @@ export function EntityManager({ guildId }: EntityManagerProps) {
 
   if (loading) {
     return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
+      <Box sx={{ p: { xs: 3, sm: 4 }, textAlign: 'center' }}>
         <CircularProgress size={30} sx={{ mb: 2 }} />
         <Typography color="text.secondary">Loading entities...</Typography>
       </Box>
@@ -116,7 +116,18 @@ export function EntityManager({ guildId }: EntityManagerProps) {
 
   return (
     <Box>
-      <Paper variant="outlined" sx={{ p: 2, mb: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
+      <Paper 
+        variant="outlined" 
+        sx={{ 
+          p: { xs: 2, sm: 2.5 }, 
+          mb: 3, 
+          display: 'flex', 
+          gap: { xs: 2, sm: 2 }, 
+          alignItems: 'center',
+          flexDirection: { xs: 'column', sm: 'row' },
+          borderRadius: 2,
+        }}
+      >
         <TextField
           fullWidth
           size="small"
@@ -135,10 +146,12 @@ export function EntityManager({ guildId }: EntityManagerProps) {
               ),
             }
           }}
+          sx={{ flexGrow: 1 }}
         />
-        <FormControl size="small" sx={{ minWidth: 150 }}>
-          <InputLabel>Sort By</InputLabel>
+        <FormControl size="small" sx={{ width: { xs: '100%', sm: 150 } }}>
+          <InputLabel id="sort-by-label">Sort By</InputLabel>
           <Select
+            labelId="sort-by-label"
             value={orderBy}
             label="Sort By"
             onChange={(e) => setSortBy(e.target.value as 'name' | 'type' | 'memories')}
@@ -150,16 +163,23 @@ export function EntityManager({ guildId }: EntityManagerProps) {
         </FormControl>
       </Paper>
 
-      <TableContainer component={Paper} variant="outlined">
+      <TableContainer 
+        component={Paper} 
+        variant="outlined"
+        sx={{ 
+          borderRadius: 2,
+          overflow: 'hidden',
+        }}
+      >
         <Table size="small">
           <TableHead sx={{ bgcolor: 'action.hover' }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Entity Name</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }} align="center">Memories</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Internal ID</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Created</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }} align="right">Metadata</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>Type</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>Entity Name</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.8rem' } }} align="center">Memories</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>Internal ID</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>Created</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.8rem' } }} align="right">Metadata</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -169,35 +189,37 @@ export function EntityManager({ guildId }: EntityManagerProps) {
                   <Chip
                     label={node.nodeType}
                     size="small"
-                    sx={{ 
+                    sx={{
                       bgcolor: `${getNodeTypeColor(node.nodeType)}15`,
                       color: getNodeTypeColor(node.nodeType),
                       border: `1px solid ${getNodeTypeColor(node.nodeType)}44`,
                       fontWeight: 'bold',
                       textTransform: 'uppercase',
-                      fontSize: '0.6rem',
-                      height: 20
+                      fontSize: { xs: '0.6rem', sm: '0.65rem' },
+                      height: { xs: 20, sm: 24 }
                     }}
                   />
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2" fontWeight="medium">{node.name}</Typography>
+                  <Typography variant="body2" fontWeight="medium" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
+                    {node.name}
+                  </Typography>
                 </TableCell>
                 <TableCell align="center">
-                  <Chip 
-                    label={node.memoryCount} 
-                    size="small" 
+                  <Chip
+                    label={node.memoryCount}
+                    size="small"
                     variant="outlined"
-                    sx={{ fontWeight: 'bold', height: 20 }}
+                    sx={{ fontWeight: 'bold', height: { xs: 20, sm: 24 }, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
                   />
                 </TableCell>
                 <TableCell>
-                  <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'text.secondary' }}>
+                  <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'text.secondary', fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
                     {node.nodeId}
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <Typography variant="caption">
+                  <Typography variant="caption" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
                     {new Date(node.createdAt).toLocaleDateString()}
                   </Typography>
                 </TableCell>
@@ -216,7 +238,7 @@ export function EntityManager({ guildId }: EntityManagerProps) {
             ))}
             {filteredNodes.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={6} align="center" sx={{ py: { xs: 3, sm: 4 } }}>
                   <Typography variant="body2" color="text.secondary">No entities found matching your search</Typography>
                 </TableCell>
               </TableRow>
@@ -234,6 +256,14 @@ export function EntityManager({ guildId }: EntityManagerProps) {
             setPage(0);
           }}
           rowsPerPageOptions={[10, 25, 50]}
+          sx={{
+            '& .MuiTablePagination-toolbar': {
+              px: { xs: 1, sm: 2 },
+            },
+            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+            },
+          }}
         />
       </TableContainer>
     </Box>

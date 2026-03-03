@@ -8,35 +8,35 @@ test.describe('Logs', () => {
     logs = new LogsPage(page);
   });
 
-  test('should load the Logs page', async ({ page }) => {
+  test('should load the Logs page', async () => {
     await logs.goto();
     await logs.waitForLoad();
-    
-    await expect(page.locator('text=Logs')).toBeVisible();
+
+    await expect(logs.page.locator('text=Logs')).toBeVisible();
   });
 
-  test('should display log container', async ({ page }) => {
+  test('should display log container', async () => {
     await logs.goto();
     await logs.waitForLoad();
-    
+
     await expect(logs.logContainer).toBeVisible();
   });
 
-  test('should filter logs by level', async ({ page }) => {
+  test('should filter logs by level', async () => {
     await logs.goto();
     await logs.waitForLoad();
-    
+
     // Try filtering by different log levels
     const levels = ['INFO', 'WARN', 'ERROR'];
     
     for (const level of levels) {
       await logs.filterByLevel(level);
       // Wait for filter to apply
-      await page.waitForTimeout(500);
+      await logs.page.waitForTimeout(500);
     }
   });
 
-  test('should handle real-time log streaming', async ({ page }) => {
+  test('should handle real-time log streaming', async () => {
     await logs.goto();
     await logs.waitForLoad();
     
@@ -51,7 +51,7 @@ test.describe('Logs', () => {
     expect(count >= 0).toBe(true);
   });
 
-  test('should clear logs', async ({ page }) => {
+  test('should clear logs', async () => {
     await logs.goto();
     await logs.waitForLoad();
     
@@ -63,7 +63,7 @@ test.describe('Logs', () => {
     await logs.clearLogs();
     
     // Wait for clear operation
-    await page.waitForTimeout(500);
+    await logs.page.waitForTimeout(500);
     
     // Verify logs were cleared or clear button wasn't available
     const finalEntries = logs.getLogEntries();
@@ -73,7 +73,7 @@ test.describe('Logs', () => {
     expect(finalCount <= initialCount).toBe(true);
   });
 
-  test('should display log timestamps', async ({ page }) => {
+  test('should display log timestamps', async () => {
     await logs.goto();
     await logs.waitForLoad();
     
@@ -90,18 +90,12 @@ test.describe('Logs', () => {
     }
   });
 
-  test('should handle Socket.io connection', async ({ page }) => {
+  test('should handle Socket.io connection', async () => {
     await logs.goto();
     await logs.waitForLoad();
     
     // Wait for Socket.io connection to establish
-    await page.waitForTimeout(2000);
-    
-    // Check for connection status indicators
-    const connectedIndicator = page.locator('[data-testid="connected"], .connected, text=Connected');
-    
-    // Connection indicator may or may not be visible
-    const isConnected = await connectedIndicator.isVisible().catch(() => false);
+    await logs.page.waitForTimeout(2000);
     
     // Just verify the page is functional
     await expect(logs.logContainer).toBeVisible();

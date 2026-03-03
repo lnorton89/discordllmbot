@@ -49,7 +49,7 @@ export default function Memory() {
   const tabParam = searchParams.get('tab');
   const tabNames = ['graph', 'browser', 'entities', 'ingestion'];
   const initialTab = tabParam ? tabNames.indexOf(tabParam) : 0;
-  
+
   const [tabValue, setTabValue] = useState(initialTab >= 0 && initialTab < tabNames.length ? initialTab : 0);
   const [servers, setServers] = useState<Server[]>([]);
   const [selectedServer, setSelectedServer] = useState<string>('');
@@ -120,20 +120,35 @@ export default function Memory() {
   const isSystemChannel = selectedChannel === 'system-ingestion';
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h4" fontWeight="bold" gutterBottom>
-        Memory Graph
-      </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 }, pb: { xs: 8, sm: 3 } }}>
+      {/* Page Header */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4" fontWeight="bold" gutterBottom>
+          Memory Graph
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
           Explore the bot&apos;s hypergraph memory system - entities, relationships, and stored memories.
         </Typography>
+      </Box>
 
       {/* Server & Channel Selection */}
-      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-        <Stack direction="row" spacing={2} alignItems="center">
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel>Select Server</InputLabel>
+      <Paper 
+        variant="outlined" 
+        sx={{ 
+          p: { xs: 2, sm: 2.5 }, 
+          mb: 3,
+          borderRadius: 2,
+        }}
+      >
+        <Stack 
+          direction={{ xs: 'column', sm: 'row' }} 
+          spacing={{ xs: 2, sm: 2 }} 
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+        >
+          <FormControl size="small" sx={{ width: { xs: '100%', sm: 200 } }}>
+            <InputLabel id="server-select-label">Select Server</InputLabel>
             <Select
+              labelId="server-select-label"
               value={selectedServer}
               label="Select Server"
               onChange={(e) => setSelectedServer(e.target.value)}
@@ -146,19 +161,23 @@ export default function Memory() {
             </Select>
           </FormControl>
 
-          <FormControl size="small" sx={{ minWidth: 250 }}>
-            <InputLabel>Select Channel Source</InputLabel>
+          <FormControl size="small" sx={{ width: { xs: '100%', sm: 250 }, flexGrow: { xs: 1, sm: 0 } }}>
+            <InputLabel id="channel-select-label">Select Channel Source</InputLabel>
             <Select
+              labelId="channel-select-label"
               value={selectedChannel}
               label="Select Channel Source"
               onChange={(e) => setSelectedChannel(e.target.value)}
               disabled={!selectedServer}
             >
               {channels.map((channel) => (
-                <MenuItem 
-                  key={channel.id} 
+                <MenuItem
+                  key={channel.id}
                   value={channel.id}
-                  sx={{ color: channel.id === 'system-ingestion' ? 'secondary.main' : 'inherit', fontWeight: channel.id === 'system-ingestion' ? 'bold' : 'normal' }}
+                  sx={{ 
+                    color: channel.id === 'system-ingestion' ? 'secondary.main' : 'inherit', 
+                    fontWeight: channel.id === 'system-ingestion' ? 'bold' : 'normal' 
+                  }}
                 >
                   {channel.id === 'system-ingestion' ? channel.name : `#${channel.name}`}
                 </MenuItem>
@@ -171,22 +190,40 @@ export default function Memory() {
             size="small"
             color={isSystemChannel ? 'secondary' : 'info'}
             variant="outlined"
+            sx={{ height: { xs: 'auto', sm: 32 } }}
           />
         </Stack>
       </Paper>
 
       {/* Main Content */}
-      <Paper variant="outlined">
+      <Paper 
+        variant="outlined" 
+        sx={{ 
+          borderRadius: 2,
+          overflow: 'hidden',
+        }}
+      >
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
           aria-label="memory tabs"
-          sx={{ px: 2, borderBottom: 1, borderColor: 'divider' }}
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
+          sx={{ 
+            px: { xs: 1, sm: 2 }, 
+            borderBottom: 1, 
+            borderColor: 'divider',
+            '& .MuiTab-root': {
+              minHeight: { xs: 56, sm: 64 },
+              minWidth: { xs: 100, sm: 120 },
+            }
+          }}
         >
-          <Tab icon={<AccountTreeIcon />} label="Graph View" />
-          <Tab icon={<MemoryIcon />} label="Memory Browser" />
-          <Tab icon={<HubIcon />} label="Entity Manager" />
-          <Tab icon={<StorageIcon />} label="Knowledge Ingestion" />
+          <Tab icon={<AccountTreeIcon />} iconPosition="start" label="Graph View" />
+          <Tab icon={<MemoryIcon />} iconPosition="start" label="Memory Browser" />
+          <Tab icon={<HubIcon />} iconPosition="start" label="Entity Manager" />
+          <Tab icon={<StorageIcon />} iconPosition="start" label="Knowledge Ingestion" />
         </Tabs>
 
         <TabPanel value={tabValue} index={0}>

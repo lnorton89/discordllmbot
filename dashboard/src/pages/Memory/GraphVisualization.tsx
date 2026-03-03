@@ -235,7 +235,7 @@ export function GraphVisualization({ guildId, channelId }: GraphVisualizationPro
 
   if (loading) {
     return (
-      <Box sx={{ p: 3, textAlign: 'center', height: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ p: { xs: 2, sm: 3 }, textAlign: 'center', height: { xs: 400, sm: 500, md: 600 }, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 2 }}>
         <CircularProgress size={40} />
         <Typography color="text.secondary">Mapping neural pathways...</Typography>
       </Box>
@@ -244,21 +244,45 @@ export function GraphVisualization({ guildId, channelId }: GraphVisualizationPro
 
   return (
     <Box>
-      <Stack direction="row" spacing={2} sx={{ mb: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+      <Stack 
+        direction={{ xs: 'column', sm: 'row' }} 
+        spacing={{ xs: 1, sm: 2 }} 
+        sx={{ 
+          mb: { xs: 2, sm: 3 }, 
+          alignItems: { xs: 'stretch', sm: 'center' }, 
+          flexWrap: 'wrap',
+          gap: { xs: 1, sm: 2 }
+        }}
+      >
         <Autocomplete
           size="small"
-          sx={{ width: 250 }}
+          sx={{ width: { xs: '100%', sm: 250 } }}
           options={graphData.nodes}
           getOptionLabel={(option) => option.name}
           renderInput={(params) => (
-            <TextField {...params} label="Search entity..." slotProps={{ input: { ...params.InputProps, startAdornment: <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} /> } }} />
+            <TextField 
+              {...params} 
+              label="Search entity..." 
+              slotProps={{ 
+                input: { 
+                  ...params.InputProps, 
+                  startAdornment: (
+                    <>
+                      <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />
+                      {params.InputProps.startAdornment}
+                    </>
+                  )
+                } 
+              }} 
+            />
           )}
           onChange={(_e, node) => node && handleNodeClick(node)}
         />
 
-        <FormControl size="small" sx={{ minWidth: 150 }}>
-          <InputLabel>Filter by Type</InputLabel>
+        <FormControl size="small" sx={{ width: { xs: '100%', sm: 150 } }}>
+          <InputLabel id="filter-type-label">Filter by Type</InputLabel>
           <Select
+            labelId="filter-type-label"
             value={filterType}
             label="Filter by Type"
             onChange={(e) => setFilterType(e.target.value)}
@@ -270,7 +294,16 @@ export function GraphVisualization({ guildId, channelId }: GraphVisualizationPro
           </Select>
         </FormControl>
 
-        <Stack direction="row" spacing={0.5} sx={{ bgcolor: 'action.hover', p: 0.5, borderRadius: 1 }}>
+        <Stack 
+          direction="row" 
+          spacing={0.5} 
+          sx={{ 
+            bgcolor: 'action.hover', 
+            p: 0.5, 
+            borderRadius: 1,
+            justifyContent: { xs: 'flex-start', sm: 'flex-start' }
+          }}
+        >
           <Tooltip title="Reset View">
             <IconButton onClick={handleReset} size="small"><ResetIcon fontSize="small" /></IconButton>
           </Tooltip>
@@ -282,9 +315,17 @@ export function GraphVisualization({ guildId, channelId }: GraphVisualizationPro
           </Tooltip>
         </Stack>
 
-        <Box sx={{ flexGrow: 1 }} />
+        <Box sx={{ flexGrow: { xs: 1, sm: 1 } }} />
 
-        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+        <Stack 
+          direction="row" 
+          spacing={1} 
+          sx={{ 
+            flexWrap: 'wrap', 
+            gap: { xs: 0.5, sm: 1 },
+            width: { xs: '100%', sm: 'auto' }
+          }}
+        >
           {Object.entries(NODE_COLORS).map(([type, color]) => (
             <Chip
               key={type}
@@ -296,7 +337,8 @@ export function GraphVisualization({ guildId, channelId }: GraphVisualizationPro
                 color: filterType === 'all' || filterType === type ? 'white' : 'text.disabled',
                 border: `1px solid ${color}`,
                 transition: 'all 0.2s',
-                '&:hover': { bgcolor: color, color: 'white' }
+                '&:hover': { bgcolor: color, color: 'white' },
+                fontSize: { xs: '0.65rem', sm: '0.7rem' }
               }}
             />
           ))}
@@ -307,7 +349,7 @@ export function GraphVisualization({ guildId, channelId }: GraphVisualizationPro
         elevation={0}
         variant="outlined"
         sx={{
-          height: 650,
+          height: { xs: 400, sm: 500, md: 650 },
           position: 'relative',
           overflow: 'hidden',
           bgcolor: '#0f172a',
@@ -345,24 +387,25 @@ export function GraphVisualization({ guildId, channelId }: GraphVisualizationPro
         <Box
           sx={{
             position: 'absolute',
-            top: 16,
-            left: 16,
-            p: 1.5,
+            top: { xs: 8, sm: 16 },
+            left: { xs: 8, sm: 16 },
+            p: { xs: 1, sm: 1.5 },
             borderRadius: 1,
             bgcolor: 'rgba(15, 23, 42, 0.85)',
             backdropFilter: 'blur(8px)',
             border: '1px solid rgba(255,255,255,0.1)',
             pointerEvents: 'none',
+            maxWidth: { xs: 'calc(100% - 16px)', sm: 'auto' },
           }}
         >
-          <Typography variant="caption" sx={{ color: 'white', fontWeight: 'bold', display: 'block', mb: 1, textTransform: 'uppercase', letterSpacing: 1 }}>
+          <Typography variant="caption" sx={{ color: 'white', fontWeight: 'bold', display: 'block', mb: 1, textTransform: 'uppercase', letterSpacing: 1, fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>
             Edge Types
           </Typography>
           <Stack spacing={0.5}>
             {Object.entries(EDGE_COLORS).map(([type, color]) => (
               <Stack key={type} direction="row" alignItems="center" spacing={1}>
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: color }} />
-                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', textTransform: 'capitalize' }}>
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: color, flexShrink: 0 }} />
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', textTransform: 'capitalize', fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>
                   {type}
                 </Typography>
               </Stack>
@@ -375,37 +418,62 @@ export function GraphVisualization({ guildId, channelId }: GraphVisualizationPro
           <Box
             sx={{
               position: 'absolute',
-              bottom: 16,
-              right: 16,
-              width: 280,
-              p: 2,
-              borderRadius: 2,
+              bottom: { xs: 8, sm: 16 },
+              right: { xs: 8, sm: 16 },
+              left: { xs: 8, sm: 'auto' },
+              width: { xs: 'calc(100% - 16px)', sm: 280 },
+              p: { xs: 1.5, sm: 2 },
+              borderRadius: { xs: 1, sm: 2 },
               bgcolor: 'rgba(15, 23, 42, 0.9)',
               backdropFilter: 'blur(12px)',
               border: '1px solid rgba(255,255,255,0.15)',
               color: 'white',
               pointerEvents: 'none',
               zIndex: 10,
+              maxHeight: { xs: 'calc(50% - 32px)', sm: 'auto' },
+              overflow: 'auto',
             }}
           >
             {hoverNode && (
               <>
-                <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: hoverNode.color }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: hoverNode.color, fontSize: { xs: '0.8rem', sm: '0.9rem' }, wordBreak: 'break-word' }}>
                     {hoverNode.name}
                   </Typography>
-                  <Chip label={hoverNode.nodeType} size="small" sx={{ height: 18, fontSize: '0.6rem', bgcolor: hoverNode.color, color: 'white' }} />
+                  <Chip 
+                    label={hoverNode.nodeType} 
+                    size="small" 
+                    sx={{ 
+                      height: { xs: 16, sm: 18 }, 
+                      fontSize: { xs: '0.55rem', sm: '0.6rem' }, 
+                      bgcolor: hoverNode.color, 
+                      color: 'white',
+                      flexShrink: 0,
+                    }} 
+                  />
                 </Stack>
                 <Divider sx={{ my: 1, borderColor: 'rgba(255,255,255,0.1)' }} />
-                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', display: 'block', mb: 1 }}>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', display: 'block', mb: 1, fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>
                   ID: {hoverNode.nodeId}
                 </Typography>
                 {hoverNode.metadata && Object.keys(hoverNode.metadata).length > 0 && (
                   <Box sx={{ mt: 1 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block', color: 'rgba(255,255,255,0.4)' }}>METADATA</Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block', color: 'rgba(255,255,255,0.4)', fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>
+                      METADATA
+                    </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
                       {Object.entries(hoverNode.metadata).map(([k, v]) => (
-                        <Typography key={k} variant="caption" sx={{ bgcolor: 'rgba(255,255,255,0.05)', px: 0.5, borderRadius: 0.5 }}>
+                        <Typography 
+                          key={k} 
+                          variant="caption" 
+                          sx={{ 
+                            bgcolor: 'rgba(255,255,255,0.05)', 
+                            px: 0.5, 
+                            borderRadius: 0.5,
+                            fontSize: { xs: '0.55rem', sm: '0.6rem' },
+                            wordBreak: 'break-word',
+                          }}
+                        >
                           {k}: {String(v)}
                         </Typography>
                       ))}

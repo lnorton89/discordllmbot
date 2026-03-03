@@ -8,14 +8,14 @@ test.describe('Dashboard', () => {
     dashboard = new DashboardPage(page);
   });
 
-  test('should load the dashboard successfully', async ({ page }) => {
+  test('should load the dashboard successfully', async () => {
     await dashboard.goto();
     await dashboard.waitForLoad();
     
     await expect(dashboard.root).toBeVisible();
   });
 
-  test('should have a navigation menu', async ({ page }) => {
+  test('should have a navigation menu', async () => {
     await dashboard.goto();
     await dashboard.waitForLoad();
     

@@ -49,23 +49,21 @@ test.describe('Settings', () => {
   test('should auto-save settings changes', async ({ page }) => {
     await settings.goto();
     await settings.waitForLoad();
-    
+
     // Navigate to a tab with form fields
     await settings.selectTab('LLM');
-    
+
     // Try to find and interact with a form field
     // This test verifies the auto-save debounce functionality
     const retryAttemptsField = settings.getField('Retry Attempts');
-    
+
     if (await retryAttemptsField.isVisible()) {
-      const initialValue = await retryAttemptsField.inputValue();
-      
       // Change the value
       await retryAttemptsField.fill('5');
-      
+
       // Wait for auto-save debounce (1 second based on docs)
       await page.waitForTimeout(1500);
-      
+
       // Verify the field still has the new value
       await expect(retryAttemptsField).toHaveValue('5');
     }
@@ -74,12 +72,12 @@ test.describe('Settings', () => {
   test('should validate LLM provider selection', async ({ page }) => {
     await settings.goto();
     await settings.waitForLoad();
-    
+
     await settings.selectTab('LLM');
-    
+
     // Check for provider selection
     const providerSelect = page.locator('select:has-text("gemini"), select:has-text("ollama"), select:has-text("qwen")');
-    
+
     if (await providerSelect.isVisible()) {
       const providers = await providerSelect.locator('option').allTextContents();
       expect(providers).toContain('gemini');
@@ -88,37 +86,37 @@ test.describe('Settings', () => {
     }
   });
 
-  test('should display Memory settings', async ({ page }) => {
+  test('should display Memory settings', async () => {
     await settings.goto();
     await settings.waitForLoad();
-    
+
     await settings.selectTab('Memory');
-    
+
     // Check for memory-related fields
     const maxMessagesField = settings.getField('Max Messages');
     const maxAgeField = settings.getField('Max Message Age');
-    
+
     // At least one should be visible
     const maxMessagesVisible = await maxMessagesField.isVisible();
     const maxAgeVisible = await maxAgeField.isVisible();
-    
+
     expect(maxMessagesVisible || maxAgeVisible).toBe(true);
   });
 
   test('should display Logger settings', async ({ page }) => {
     await settings.goto();
     await settings.waitForLoad();
-    
+
     await settings.selectTab('Logger');
-    
+
     // Check for logger-related toggles
     const logReplyDecisions = page.locator('text=Log Reply Decisions');
     const logSql = page.locator('text=Log SQL');
-    
+
     // At least one should be visible
     const replyVisible = await logReplyDecisions.isVisible();
     const sqlVisible = await logSql.isVisible();
-    
+
     expect(replyVisible || sqlVisible).toBe(true);
   });
 });

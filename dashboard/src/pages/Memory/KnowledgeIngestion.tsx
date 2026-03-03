@@ -135,16 +135,22 @@ export function KnowledgeIngestion({ guildId }: KnowledgeIngestionProps) {
     }
   };
 
-  if (loading) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
+  if (loading) return <Box sx={{ p: { xs: 3, sm: 4 }, textAlign: 'center' }}><CircularProgress /></Box>;
 
   return (
-    <Box sx={{ p: 1 }}>
-      <Grid container spacing={3}>
+    <Box sx={{ p: { xs: 1, sm: 1 } }}>
+      <Grid container spacing={{ xs: 2, sm: 3 }}>
         {/* Document Ingestion */}
         <Grid size={{ xs: 12, md: 6 }}>
-          <Paper variant="outlined" sx={{ p: 2 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 2, height: '100%' }}>
+            <Stack 
+              direction={{ xs: 'column', sm: 'row' }} 
+              justifyContent="space-between" 
+              alignItems={{ xs: 'stretch', sm: 'center' }} 
+              spacing={{ xs: 1, sm: 0 }}
+              sx={{ mb: 2 }}
+            >
+              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: { xs: '1rem', sm: '1.1rem' } }}>
                 <DocIcon color="primary" /> Documents
               </Typography>
               <Button
@@ -152,25 +158,36 @@ export function KnowledgeIngestion({ guildId }: KnowledgeIngestionProps) {
                 component="label"
                 startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <UploadIcon />}
                 disabled={uploading}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
               >
                 Upload File
                 <input type="file" hidden onChange={handleFileUpload} accept=".pdf,.txt,.md" />
               </Button>
             </Stack>
-            
-            <Alert severity="info" sx={{ mb: 2, fontSize: '0.75rem' }}>
+
+            <Alert severity="info" sx={{ mb: 2, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
               Supported formats: PDF, Text, Markdown. Content is automatically chunked and indexed into the knowledge graph.
             </Alert>
 
-            <List sx={{ maxHeight: 400, overflow: 'auto' }}>
+            <List sx={{ maxHeight: { xs: 300, sm: 400 }, overflow: 'auto' }}>
               {docs.map((doc) => (
-                <ListItem key={doc.id} divider>
+                <ListItem key={doc.id} divider sx={{ py: { xs: 1, sm: 1.5 } }}>
                   <ListItemText
                     primary={doc.filename}
                     secondary={new Date(doc.createdAt).toLocaleString()}
-                    slotProps={{ primary: { variant: 'body2', fontWeight: 'medium' } }}
+                    slotProps={{ 
+                      primary: { 
+                        variant: 'body2', 
+                        fontWeight: 'medium',
+                        sx: { fontSize: { xs: '0.85rem', sm: '0.9rem' } }
+                      },
+                      secondary: {
+                        sx: { fontSize: { xs: '0.7rem', sm: '0.75rem' } }
+                      }
+                    }}
+                    sx={{ pr: { xs: 1, sm: 2 } }}
                   />
-                  <Box sx={{ ml: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ ml: 2, display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
                     {getStatusChip(doc.status)}
                     <IconButton size="small" color="error" onClick={() => deleteDoc(doc.id)} title="Delete document">
                       <DeleteIcon fontSize="small" />
@@ -179,7 +196,7 @@ export function KnowledgeIngestion({ guildId }: KnowledgeIngestionProps) {
                 </ListItem>
               ))}
               {docs.length === 0 && (
-                <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
+                <Typography variant="body2" color="text.secondary" align="center" sx={{ py: { xs: 3, sm: 4 }, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                   No documents uploaded yet.
                 </Typography>
               )}
@@ -189,32 +206,53 @@ export function KnowledgeIngestion({ guildId }: KnowledgeIngestionProps) {
 
         {/* RSS Ingestion */}
         <Grid size={{ xs: 12, md: 6 }}>
-          <Paper variant="outlined" sx={{ p: 2 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 2, height: '100%' }}>
+            <Stack 
+              direction={{ xs: 'column', sm: 'row' }} 
+              justifyContent="space-between" 
+              alignItems={{ xs: 'stretch', sm: 'center' }}
+              spacing={{ xs: 1, sm: 0 }} 
+              sx={{ mb: 2 }}
+            >
+              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: { xs: '1rem', sm: '1.1rem' } }}>
                 <RssIcon color="warning" /> RSS Feeds
               </Typography>
               <Button
                 variant="outlined"
                 startIcon={<AddIcon />}
                 onClick={() => setOpenRssDialog(true)}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
               >
                 Add Feed
               </Button>
             </Stack>
 
-            <List sx={{ maxHeight: 400, overflow: 'auto' }}>
+            <List sx={{ maxHeight: { xs: 300, sm: 400 }, overflow: 'auto' }}>
               {feeds.map((feed) => (
-                <ListItem key={feed.id} divider>
+                <ListItem key={feed.id} divider sx={{ py: { xs: 1, sm: 1.5 } }}>
                   <ListItemText
                     primary={feed.name}
                     secondary={`${feed.url} (${feed.intervalMinutes}m)`}
-                    slotProps={{ primary: { variant: 'body2', fontWeight: 'medium' } }}
+                    slotProps={{ 
+                      primary: { 
+                        variant: 'body2', 
+                        fontWeight: 'medium',
+                        sx: { fontSize: { xs: '0.85rem', sm: '0.9rem' } }
+                      },
+                      secondary: {
+                        sx: { 
+                          fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                          wordBreak: 'break-word',
+                        }
+                      }
+                    }}
+                    sx={{ pr: { xs: 1, sm: 2 } }}
                   />
-                  <Stack direction="row" spacing={1} alignItems="center">
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
                     <FormControlLabel
                       control={<Switch size="small" checked={feed.enabled} onChange={() => toggleRss(feed)} />}
-                      label={<Typography variant="caption">Active</Typography>}
+                      label={<Typography variant="caption" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>Active</Typography>}
+                      sx={{ mr: 0 }}
                     />
                     <IconButton size="small" color="error" onClick={() => deleteRss(feed.id)}>
                       <DeleteIcon fontSize="small" />
@@ -223,7 +261,7 @@ export function KnowledgeIngestion({ guildId }: KnowledgeIngestionProps) {
                 </ListItem>
               ))}
               {feeds.length === 0 && (
-                <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
+                <Typography variant="body2" color="text.secondary" align="center" sx={{ py: { xs: 3, sm: 4 }, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                   No RSS feeds configured.
                 </Typography>
               )}
@@ -233,10 +271,15 @@ export function KnowledgeIngestion({ guildId }: KnowledgeIngestionProps) {
       </Grid>
 
       {/* Add RSS Dialog */}
-      <Dialog open={openRssDialog} onClose={() => setOpenRssDialog(false)}>
+      <Dialog 
+        open={openRssDialog} 
+        onClose={() => setOpenRssDialog(false)}
+        fullWidth
+        maxWidth="sm"
+      >
         <DialogTitle>Add RSS Feed</DialogTitle>
         <DialogContent>
-          <Box sx={{ pt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ pt: 1, display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 2 } }}>
             <TextField
               fullWidth
               label="Feed Name"
@@ -258,7 +301,7 @@ export function KnowledgeIngestion({ guildId }: KnowledgeIngestionProps) {
             />
           </Box>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: { xs: 2, sm: 3 }, pb: { xs: 2, sm: 3 } }}>
           <Button onClick={() => setOpenRssDialog(false)}>Cancel</Button>
           <Button onClick={handleAddRss} variant="contained" disabled={!newFeed.name || !newFeed.url}>Add Feed</Button>
         </DialogActions>
