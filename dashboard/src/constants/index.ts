@@ -6,6 +6,8 @@
  * @module dashboard/src/constants
  */
 
+import { URLS as SHARED_URLS } from '@shared/constants';
+
 /** Time constants in milliseconds */
 const TIME = {
     SECOND: 1000,
@@ -132,3 +134,8 @@ export const STORAGE = {
     SIDEBAR_COLLAPSED: 'sidebar-collapsed',
     ANALYTICS_DAYS: 'analytics-days',
 } as const;
+
+/**
+ * URL Constants (re-exported from shared constants)
+ */
+export const URLS = SHARED_URLS;

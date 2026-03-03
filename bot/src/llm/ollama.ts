@@ -1,14 +1,15 @@
 /**
  * Ollama LLM Provider
- * 
+ *
  * Implementation for local Ollama API with retry logic
  * and exponential backoff for connection errors.
- * 
+ *
  * @module bot/src/llm/ollama
  */
 
 import { logger } from '@shared/utils/logger.js';
 import { getApiConfig } from '@shared/config/configLoader.js';
+import { URLS } from '@shared/constants';
 
 /**
  * API configuration for Ollama.
@@ -94,7 +95,7 @@ async function retry<T>(fn: () => Promise<T>, maxRetries = 3, baseBackoffMs = 10
 }
 
 function getOllamaUrl(): string {
-    return process.env.OLLAMA_API_URL || 'http://localhost:11434';
+    return process.env.OLLAMA_API_URL || URLS.LLM.OLLAMA;
 }
 
 interface UsageMetadata {

@@ -7,6 +7,7 @@
 
 import { logger } from '@shared/utils/logger.js';
 import { getApiConfig, reloadConfig } from '@shared/config/configLoader.js';
+import { URLS } from '@shared/constants';
 
 interface ApiConfig {
     qwenModel?: string;
@@ -56,10 +57,10 @@ function isRetryable(error: Error): boolean {
 async function refreshQwenToken(): Promise<boolean> {
     try {
         logger.info('Attempting automatic Qwen OAuth token refresh...');
-        
+
         // Try to call the refresh endpoint on the API server
         const apiPort = process.env.API_PORT || '3000';
-        const refreshUrl = `http://localhost:${apiPort}/api/llm/qwen/oauth/refresh`;
+        const refreshUrl = `${URLS.DEV.API.replace('http://localhost', `http://localhost:${apiPort}`)}/api/llm/qwen/oauth/refresh`;
         
         const res = await fetch(refreshUrl, { 
             method: 'POST',
@@ -127,7 +128,7 @@ async function retry<T>(fn: () => Promise<T>, maxRetries = 3, baseBackoffMs = 10
 }
 
 function getQwenBaseUrl(): string {
-    return 'https://portal.qwen.ai/v1';
+    return URLS.QWEN.PORTAL;
 }
 
 function resolveQwenApiKey(config: ApiConfig): string {

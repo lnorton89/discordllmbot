@@ -5,6 +5,16 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
+// URL Constants (mirroring @shared/constants for build config)
+const URLS = {
+    DEV: {
+        API: 'http://localhost:3000',
+    },
+    DOCKER: {
+        API: 'http://bot:3000',
+    },
+} as const;
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
@@ -18,7 +28,7 @@ export default defineConfig(({ mode }) => {
       // In Docker environment, replace localhost with 'bot' service name
       apiTarget = viteApiUrl.replace('/api', '').replace('localhost', 'bot');
     } else {
-      apiTarget = 'http://localhost:3000';
+      apiTarget = URLS.DEV.API;
     }
   }
 

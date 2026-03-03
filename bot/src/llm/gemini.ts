@@ -1,14 +1,15 @@
 /**
  * Gemini LLM Provider
- * 
+ *
  * Implementation for Google's Gemini API with retry logic
  * and exponential backoff for rate limiting.
- * 
+ *
  * @module bot/src/llm/gemini
  */
 
 import { logger } from '@shared/utils/logger.js';
 import { getApiConfig } from '@shared/config/configLoader.js';
+import { URLS } from '@shared/constants';
 
 /**
  * API configuration for Gemini.
@@ -22,13 +23,13 @@ interface ApiConfig {
 
 /**
  * Gets the Gemini API URL for the configured model.
- * 
+ *
  * @returns Promise resolving to the API URL
  */
 async function getGeminiUrl(): Promise<string> {
     const config: ApiConfig = await getApiConfig();
     const geminiModel = config.geminiModel || 'gemini-2.0-flash';
-    return `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`;
+    return `${URLS.GEMINI.BASE}/${geminiModel}:generateContent`;
 }
 
 /**
@@ -207,7 +208,7 @@ export async function getAvailableModels(): Promise<string[]> {
     }
 
     try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`, {
+        const res = await fetch(`${URLS.GEMINI.BASE}?key=${apiKey}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         });

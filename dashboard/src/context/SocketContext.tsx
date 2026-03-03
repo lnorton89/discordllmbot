@@ -6,7 +6,7 @@
 import React, { createContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-import { SOCKET } from '@constants';
+import { SOCKET, URLS } from '@constants';
 
 /**
  * Socket event types
@@ -33,6 +33,19 @@ const SocketContext = createContext<SocketContextValue | null>(null);
  */
 interface SocketProviderProps {
   children: React.ReactNode;
+}
+
+/**
+ * Convert HTTP URL to WebSocket URL using constants
+ */
+function convertHttpToWs(url: string): string {
+  if (url.startsWith(URLS.SOCKET.HTTP_TO_WS['https://'])) {
+    return url.replace(URLS.SOCKET.HTTP_TO_WS['https://'], URLS.SOCKET.HTTP_TO_WS['wss://']);
+  }
+  if (url.startsWith(URLS.SOCKET.HTTP_TO_WS['http://'])) {
+    return url.replace(URLS.SOCKET.HTTP_TO_WS['http://'], URLS.SOCKET.HTTP_TO_WS['ws://']);
+  }
+  return url;
 }
 
 /**
@@ -80,8 +93,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
     // In Docker, connect directly to bot service using ws:// instead of http://
     // VITE_API_URL is set to http://bot:3000 in Docker, convert to ws://bot:3000
     const viteApiUrl = import.meta.env.VITE_API_URL;
-    const socketUrl = viteApiUrl 
-      ? viteApiUrl.replace('http://', 'ws://').replace('https://', 'wss://').replace('/api', '')
+    const socketUrl = viteApiUrl
+      ? convertHttpToWs(viteApiUrl).replace('/api', '')
       : window.location.origin;
     
     const socketInstance = io(socketUrl, {

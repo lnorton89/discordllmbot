@@ -148,3 +148,47 @@ export const ENV = {
     API_PORT: 'API_PORT',
     VITE_API_URL: 'VITE_API_URL',
 } as const;
+
+/**
+ * URL Constants
+ */
+export const URLS = {
+    /** Development URLs */
+    DEV: {
+        DASHBOARD: 'http://localhost:5173',
+        API: 'http://localhost:3000',
+        DOCS: 'http://localhost:5174',
+        PGADMIN: 'http://localhost:5050',
+    },
+    /** Docker service URLs */
+    DOCKER: {
+        API: 'http://bot:3000',
+        DASHBOARD: 'http://dashboard:5173',
+    },
+    /** LLM Provider URLs */
+    LLM: {
+        OLLAMA: 'http://localhost:11434',
+    },
+    /** Qwen OAuth URLs */
+    QWEN: {
+        BASE: 'https://chat.qwen.ai',
+        PORTAL: 'https://portal.qwen.ai/v1',
+        OAUTH_DEVICE_CODE: '/api/v1/oauth2/device/code',
+        OAUTH_TOKEN: '/api/v1/oauth2/token',
+    },
+    /** Gemini API URLs */
+    GEMINI: {
+        BASE: 'https://generativelanguage.googleapis.com/v1beta/models',
+    },
+    /** Discord OAuth URLs */
+    DISCORD: {
+        OAUTH: 'https://discord.com/api/oauth2/authorize',
+    },
+    /** Socket.IO protocol conversion */
+    SOCKET: {
+        HTTP_TO_WS: {
+            'http://': 'ws://',
+            'https://': 'wss://',
+        },
+    },
+} as const;

@@ -33,7 +33,9 @@ RUN npx turbo run build --filter=discordllmbot-dashboard
 
 # Create .env file with Docker-specific API URL
 # Use 'bot' service name from docker-compose for internal networking
-RUN echo "VITE_API_URL=http://bot:3000" > ./dashboard/.env
+# Can be overridden via build arg: --build-arg API_URL=http://bot:3000
+ARG API_URL=http://bot:3000
+RUN echo "VITE_API_URL=${API_URL}" > ./dashboard/.env
 
 # Increase Vite heap size and disable polling to reduce memory
 ENV NODE_OPTIONS="--max-old-space-size=2048"

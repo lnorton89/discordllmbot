@@ -8,6 +8,7 @@
 
 import { Router, Request, Response } from 'express';
 import { Client } from 'discord.js';
+import { URLS } from '@shared/constants';
 
 /**
  * Bot info response type
@@ -40,7 +41,7 @@ export function createBotInfoRoutes(client: Client): Router {
         // You can customize these permissions as needed
         const permissions = '0'; // No permissions by default
         const scopes = 'bot%20applications.commands';
-        const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&permissions=${permissions}&scopes=${scopes}`;
+        const inviteUrl = `${URLS.DISCORD.OAUTH}?client_id=${clientId}&permissions=${permissions}&scopes=${scopes}`;
 
         res.json({
             clientId,
