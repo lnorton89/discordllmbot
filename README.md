@@ -224,11 +224,33 @@ QWEN_API_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1
 | `npm run dev` | Start bot, db, dashboard, docs, pgadmin, sandbox |
 | `npm run dev:build` | Rebuild images and start all services |
 | `npm run dev:down` | Stop and remove all containers |
+| `npm run dev:all` | Start all services including docs |
+| `npm run dev:logs` | Follow all service logs |
 | `docker-compose ps` | List running containers |
 | `docker-compose logs -f bot` | Follow bot logs |
 | `docker-compose logs -f dashboard` | Follow dashboard logs |
 | `docker-compose restart bot` | Restart bot container |
 | `docker-compose down -v` | Stop and remove volumes (resets database) |
+
+### Turbo Monorepo Commands
+
+This project uses [Turborepo](https://turbo.build/) for optimized builds and caching:
+
+| Command | Description |
+|---------|-------------|
+| `npm run build` | Build all workspaces (with caching) |
+| `npm run lint` | Lint all workspaces in parallel |
+| `npm run type-check` | Type-check all workspaces |
+| `npm run test` | Run tests across all workspaces |
+| `npm run build:bot` | Build only bot workspace |
+| `npm run build:dashboard` | Build only dashboard |
+| `npm run build:shared` | Build only shared utilities |
+| `npm run graph` | Generate dependency graph (PNG) |
+| `npm run graph:svg` | Generate interactive SVG dependency graph |
+| `npm run graph:circular` | Check for circular dependencies |
+| `npm run turbo:clean` | Clean Turbo cache |
+
+See [TURBO.md](TURBO.md) for detailed documentation.
 
 ### Access the services
 
@@ -309,15 +331,22 @@ npm run dev
 
 ## Development commands
 
-### Root
+### Root (Monorepo with Turbo)
 
 ```bash
 npm run dev              # Start bot, db, dashboard with Docker
 npm run dev:build        # Rebuild and start
 npm run dev:down         # Stop containers
-npm run build            # Build Docker images
+npm run dev:all          # Start all services including docs
+npm run dev:logs         # Follow all logs
+npm run build            # Build all workspaces (Turbo cached)
+npm run lint             # Lint all workspaces (parallel)
+npm run type-check       # Type-check all workspaces
+npm run test             # Run tests across workspaces
 npm run docs             # Run docs dev server
 npm run docs:generate    # Generate documentation
+npm run graph            # Generate dependency graph
+npm run graph:circular   # Check for circular dependencies
 ```
 
 ### Bot
@@ -428,6 +457,7 @@ All services communicate over a shared `discordllmbot-network` bridge network:
 | `pgadmin-data` | pgAdmin configuration and saved connections |
 | `sandbox-data` | Docker-in-Docker layer storage |
 | `sandbox-containerd` | Containerd state for sandbox |
+| `turbo-cache` | Turbo build cache for faster rebuilds |
 
 ### Service dependencies
 

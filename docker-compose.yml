@@ -39,9 +39,12 @@ services:
       - ./bot:/usr/src/app/bot
       - ./shared:/usr/src/app/shared
       - ./logs:/usr/src/app/logs
+      - ./turbo.json:/usr/src/app/turbo.json
       - /usr/src/app/node_modules
       - /usr/src/app/bot/node_modules
-    command: npm run dev:container
+      - /usr/src/app/shared/node_modules
+      - turbo-cache:/usr/src/app/.turbo
+    command: npx turbo run dev:container --filter=discordllmbot
     ports:
       - "${API_PORT}:3000"
       - 9229:9229
@@ -50,6 +53,8 @@ services:
         condition: service_healthy
     env_file:
       - ./.env
+    environment:
+      - TURBO_TELEMETRY_DISABLED=1
     networks:
       - discordllmbot-network
 
@@ -80,8 +85,12 @@ services:
       dockerfile: docs/Dockerfile.docs
     volumes:
       - ./docs/src:/usr/src/docs/src
+      - ./turbo.json:/usr/src/app/turbo.json
+      - turbo-cache:/usr/src/app/.turbo
     ports:
       - "${DOCS_PORT}:5173"
+    environment:
+      - TURBO_TELEMETRY_DISABLED=1
     networks:
       - discordllmbot-network
 
@@ -91,8 +100,11 @@ services:
       context: .
       dockerfile: dashboard/Dockerfile.dashboard
     volumes:
-      - ./dashboard:/usr/src/app
+      - ./dashboard:/usr/src/app/dashboard
+      - ./turbo.json:/usr/src/app/turbo.json
       - /usr/src/app/node_modules
+      - /usr/src/app/dashboard/node_modules
+      - turbo-cache:/usr/src/app/.turbo
     ports:
       - "${DASHBOARD_PORT}:5173"
     depends_on:
@@ -104,6 +116,7 @@ services:
       - ./.env
     environment:
       - API_PROXY_TARGET=http://bot:3000
+      - TURBO_TELEMETRY_DISABLED=1
     networks:
       - discordllmbot-network
 
@@ -137,3 +150,4 @@ volumes:
   pgadmin-data:
   sandbox-data:
   sandbox-containerd:
+  turbo-cache:

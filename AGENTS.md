@@ -20,13 +20,29 @@ DiscordLLMBot generates contextual replies using LLM APIs (Google Gemini, Ollama
 
 ## Build, lint, and type-check commands
 
-### Root
+### Root (Monorepo with Turbo)
 ```bash
 npm run dev           # Start bot, db, dashboard with Docker
 npm run dev:build     # Rebuild and start
 npm run dev:down      # Stop containers
-npm run build         # Build Docker images
+npm run dev:all       # Start all services including docs
+npm run dev:logs      # Follow all logs
+npm run build         # Build all workspaces (Turbo cached)
+npm run lint          # Lint all workspaces (parallel)
+npm run type-check    # Type-check all workspaces
+npm run test          # Run tests across workspaces
 npm run docs          # Run docs dev server
+npm run graph         # Generate dependency graph
+npm run graph:circular # Check for circular dependencies
+```
+
+### Turbo-Specific Commands
+```bash
+npm run build:bot          # Build only bot workspace
+npm run build:dashboard    # Build only dashboard
+npm run build:shared       # Build only shared utilities
+npm run turbo:clean        # Clean Turbo cache
+npm run graph:svg          # Generate interactive SVG dependency graph
 ```
 
 ### Bot
@@ -47,6 +63,29 @@ npm run type-check
 npm run build         # Production build
 npm run preview       # Preview production build
 ```
+
+---
+
+## 2.1. Turbo Monorepo Integration
+
+This project uses [Turborepo](https://turbo.build/) for optimized monorepo builds:
+
+- **Parallel execution** - Lint/type-check run across all workspaces simultaneously
+- **Remote caching** - Build cache shared via `turbo-cache` Docker volume
+- **Smart rebuilds** - Only affected packages are rebuilt
+- **Task pipelines** - Dependencies built in correct order (shared → bot → dashboard)
+
+**Configuration:**
+- `turbo.json` - Task definitions and cache settings
+- `.turboignore` - Files excluded from cache consideration
+- `docker-compose.yml` - Turbo cache volume mounted to all services
+
+**Docker Integration:**
+- Bot, dashboard, and docs services mount the `turbo-cache` volume
+- Turbo config (`turbo.json`) is mounted into containers
+- Each service runs filtered Turbo tasks (e.g., `--filter=discordllmbot`)
+
+See [TURBO.md](TURBO.md) for detailed documentation.
 
 ---
 

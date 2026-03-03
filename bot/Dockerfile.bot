@@ -13,5 +13,20 @@ COPY docs/package*.json ./docs/
 RUN npm install
 RUN apk add --no-cache curl
 
+# Copy turbo configuration
+COPY turbo.json ./
+
+# Copy shared workspace (dependency for bot)
+COPY shared/ ./shared/
+
+# Build shared workspace first (bot depends on it)
+RUN npx turbo run build --filter=@discordllmbot/shared
+
+# Copy bot source
+COPY bot/ ./bot/
+
+# Build bot with turbo (uses cache)
+RUN npx turbo run build --filter=discordllmbot
+
 WORKDIR /usr/src/app/bot
 EXPOSE 3000

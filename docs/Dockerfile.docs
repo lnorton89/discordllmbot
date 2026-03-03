@@ -1,20 +1,36 @@
 FROM node:25-alpine
 
-WORKDIR /usr/src/docs
+WORKDIR /usr/src/app
 
-# Copy only package files for dependency installation
-COPY docs/package*.json ./
-COPY package*.json ../
+# Copy all package.json files for workspaces
+COPY package*.json ./
+COPY bot/package*.json ./bot/
+COPY dashboard/package*.json ./dashboard/
+COPY shared/package*.json ./shared/
+COPY docs/package*.json ./docs/
 
-# Install dependencies
+# Install dependencies for all workspaces
 RUN npm install
+RUN apk add --no-cache curl
 
-# Copy scripts and source files needed for doc generation
-COPY docs/scripts ./scripts
-COPY bot/src ../bot/src
-COPY shared ../shared
-COPY README.md ../
+# Copy turbo configuration
+COPY turbo.json ./
+
+# Copy shared and bot workspaces (needed for doc generation)
+COPY shared/ ./shared/
+COPY bot/ ./bot/
+
+# Build shared workspace first
+RUN npx turbo run build --filter=@discordllmbot/shared
+
+# Copy docs source
+COPY docs/ ./docs/
+
+# Generate docs with turbo (uses cache)
+RUN npx turbo run docs:generate
+
+WORKDIR /usr/src/app/docs
 
 EXPOSE 5174
 
-CMD ["npm", "run", "dev"]
+CMD ["npx", "turbo", "run", "dev", "--filter=discordllmbot-docs"]

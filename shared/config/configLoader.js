@@ -13,6 +13,8 @@ import {
     saveServerConfig as saveDbServerConfig,
     getGlobalConfig,
     saveGlobalConfig,
+    setSqlLoggingEnabled,
+    isSqlLoggingEnabled,
 } from '../storage/persistence.js';
 
 let cachedConfig = null;
@@ -275,16 +277,6 @@ export async function getLoggerConfig() {
 export async function getSandboxConfig() {
     const config = await loadConfig();
     return config.sandbox ?? {};
-}
-
-let sqlLoggingEnabled = false;
-
-export function setSqlLoggingEnabled(enabled) {
-    sqlLoggingEnabled = enabled;
-}
-
-export function isSqlLoggingEnabled() {
-    return sqlLoggingEnabled;
 }
 
 export function clearServerConfigCache(guildId) {

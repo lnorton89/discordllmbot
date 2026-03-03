@@ -2,25 +2,44 @@ FROM node:25-alpine
 
 WORKDIR /usr/src/app
 
-# Copy dashboard package.json
-COPY dashboard/package*.json ./
+# Copy all package.json files for workspaces
+COPY package*.json ./
+COPY bot/package*.json ./bot/
+COPY dashboard/package*.json ./dashboard/
+COPY shared/package*.json ./shared/
+COPY docs/package*.json ./docs/
 
-# Install dependencies
+# Install dependencies for all workspaces
 RUN npm install --legacy-peer-deps
 RUN apk add --no-cache curl
 
+# Copy turbo configuration
+COPY turbo.json ./
+
+# Copy shared workspace (dependency for dashboard)
+COPY shared/ ./shared/
+
+# Build shared workspace first
+RUN npx turbo run build --filter=@discordllmbot/shared
+
+# Copy bot workspace (for any shared types/API)
+COPY bot/ ./bot/
+
 # Copy dashboard source
-COPY dashboard/ ./
+COPY dashboard/ ./dashboard/
+
+# Build dashboard with turbo (uses cache)
+RUN npx turbo run build --filter=discordllmbot-dashboard
 
 # Create .env file with Docker-specific API URL
 # Use 'bot' service name from docker-compose for internal networking
-RUN echo "VITE_API_URL=http://bot:3000" > .env
+RUN echo "VITE_API_URL=http://bot:3000" > ./dashboard/.env
 
 # Increase Vite heap size and disable polling to reduce memory
 ENV NODE_OPTIONS="--max-old-space-size=512"
 ENV VITE_WATCH_USE_POLLING=false
 
-# Expose port
+WORKDIR /usr/src/app/dashboard
 EXPOSE 5173
 
-CMD ["npm", "run", "dev"]
+CMD ["npx", "turbo", "run", "dev", "--filter=discordllmbot-dashboard"]

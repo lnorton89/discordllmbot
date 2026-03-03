@@ -8,16 +8,16 @@
     "OLLAMA_API_URL",
     "QWEN_API_KEY",
     "QWEN_OAUTH_CLIENT_ID",
-    "POSTGRES_DB",
     "POSTGRES_USER",
     "POSTGRES_PASSWORD",
+    "POSTGRES_DB",
     "POSTGRES_PORT",
     "DATABASE_URL",
-    "PGADMIN_DEFAULT_EMAIL",
-    "PGADMIN_DEFAULT_PASSWORD",
     "API_PORT",
     "DASHBOARD_PORT",
-    "DOCS_PORT"
+    "DOCS_PORT",
+    "PGADMIN_DEFAULT_EMAIL",
+    "PGADMIN_DEFAULT_PASSWORD"
   ],
   "tasks": {
     "build": {
@@ -25,16 +25,10 @@
       "outputs": ["dist/**", "build/**", ".vitepress/dist/**"],
       "cache": true
     },
-    "dev": {
-      "cache": false,
-      "persistent": true
-    },
     "lint": {
-      "dependsOn": ["^build"],
       "cache": true
     },
     "type-check": {
-      "dependsOn": ["^build"],
       "cache": true
     },
     "test": {
@@ -50,14 +44,17 @@
     "test:report": {
       "cache": false
     },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "dev:container": {
+      "cache": false,
+      "persistent": true
+    },
     "docs:generate": {
-      "dependsOn": ["^build"],
       "cache": true,
       "outputs": ["docs/src/generated/**"]
-    },
-    "preview": {
-      "dependsOn": ["build"],
-      "cache": false
     }
   }
 }

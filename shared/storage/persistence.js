@@ -1,19 +1,35 @@
 /**
  * Persistence Module
- * 
+ *
  * Database persistence layer for messages, relationships, guilds, and configuration.
  * Provides caching wrappers and SQL query logging.
- * 
+ *
  * @module shared/storage/persistence
  */
 
 import { getPool } from './database.js';
-import { isSqlLoggingEnabled } from '../config/configLoader.js';
 import { logger } from '../utils/logger.js';
 import { EventEmitter } from 'events';
 
 const sqlLogEmitter = new EventEmitter();
 let isPoolWrapped = false;
+let sqlLoggingEnabled = false;
+
+/**
+ * Sets whether SQL logging is enabled.
+ * @param {boolean} enabled - Whether to enable SQL logging
+ */
+export function setSqlLoggingEnabled(enabled) {
+    sqlLoggingEnabled = enabled;
+}
+
+/**
+ * Gets whether SQL logging is enabled.
+ * @returns {boolean} Whether SQL logging is enabled
+ */
+export function isSqlLoggingEnabled() {
+    return sqlLoggingEnabled;
+}
 
 /**
  * Gets the SQL log emitter for real-time query logging.
