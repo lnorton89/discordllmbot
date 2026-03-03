@@ -60,12 +60,15 @@ data
 
 ## Build output
 dist/
-build/ GEMINI.md
+build/
 
 ## Playwright Test Artifacts
-dashboard/test-results/
-dashboard/playwright-report/
-dashboard/tests/**/*.png
-dashboard/tests/**/*.webm
-dashboard/tests/**/*.zip
+test-results/
+playwright-report/
+**/*.png
+**/*.webm
+**/*.zip
 **/ms-playwright/
+
+# Logs directory
+logs/

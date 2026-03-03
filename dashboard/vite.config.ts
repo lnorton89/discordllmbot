@@ -46,6 +46,7 @@ export default defineConfig(({ mode }) => {
         "@context": path.resolve(__dirname, "./src/context"),
         "@theme": path.resolve(__dirname, "./src/theme"),
         "@types": path.resolve(__dirname, "./src/types"),
+        "@shared": path.resolve(__dirname, "../shared"),
       },
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
       dedupe: ['react', 'react-dom'],
