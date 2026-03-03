@@ -1,0 +1,15 @@
+# Playwright test results
+test-results/
+playwright-report/
+
+# Playwright browser binaries
+**/ms-playwright/
+
+# Test screenshots
+**/*.png
+
+# Test videos
+**/*.webm
+
+# Test traces
+**/trace.zip

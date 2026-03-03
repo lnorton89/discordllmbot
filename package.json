@@ -29,6 +29,10 @@
     "type-check:bot": "npm --prefix ./bot run type-check",
     "type-check:dashboard": "npm --prefix ./dashboard run type-check",
     "type-check:shared": "npm --prefix ./shared run type-check",
+    "test": "npm --prefix ./dashboard run test",
+    "test:ui": "npm --prefix ./dashboard run test:ui",
+    "test:debug": "npm --prefix ./dashboard run test:debug",
+    "test:report": "npm --prefix ./dashboard run test:report",
     "build": "docker-compose build",
     "docs": "npm --prefix ./docs run dev",
     "docs:generate": "npm --prefix ./docs run generate"

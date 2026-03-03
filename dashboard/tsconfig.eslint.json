@@ -6,7 +6,9 @@
     "src/**/*.js",
     "src/**/*.jsx",
     "eslint.config.js",
-    "vite.config.js" // Include the Vite config file
+    "vite.config.js",
+    "playwright.config.ts",
+    "tests/**/*.ts"
   ],
   "exclude": ["node_modules", "dist"]
 }

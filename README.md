@@ -339,7 +339,45 @@ npm run lint
 npm run type-check
 npm run build            # Production build
 npm run preview          # Preview production build
+npm run test             # Run Playwright E2E tests
+npm run test:ui          # Run tests in UI mode
+npm run test:debug       # Run tests with debugger
+npm run test:report      # View HTML test report
 ```
+
+---
+
+## Testing
+
+The dashboard uses Playwright for end-to-end testing. See [dashboard/TESTING.md](dashboard/TESTING.md) for detailed documentation.
+
+### Quick Start
+
+```bash
+# Install dependencies (from dashboard directory)
+cd dashboard
+npm install
+npx playwright install
+
+# Run tests
+npm test
+
+# Run tests with UI
+npm run test:ui
+
+# Run tests from root
+npm test
+```
+
+### Test Coverage
+
+- ✅ Dashboard navigation and layout
+- ✅ Settings page configuration
+- ✅ Logs page real-time streaming
+- ✅ Servers page management
+- ✅ Playground message testing
+- ✅ Cross-browser compatibility (Chrome, Firefox, Safari)
+- ✅ Mobile responsiveness
 
 ---
 
