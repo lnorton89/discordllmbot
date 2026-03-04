@@ -2,18 +2,9 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { URLS } from '@discordllmbot/shared/constants'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-// URL Constants (mirroring @shared/constants for build config)
-const URLS = {
-    DEV: {
-        API: 'http://localhost:3000',
-    },
-    DOCKER: {
-        API: 'http://bot:3000',
-    },
-} as const;
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -46,7 +37,8 @@ export default defineConfig(({ mode }) => {
         "@context": path.resolve(__dirname, "./src/context"),
         "@theme": path.resolve(__dirname, "./src/theme"),
         "@types": path.resolve(__dirname, "./src/types"),
-        "@shared": path.resolve(__dirname, "../shared"),
+        "@shared": path.resolve(__dirname, "../shared/dist"),
+        "@discordllmbot/shared": path.resolve(__dirname, "../shared/dist"),
       },
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
       dedupe: ['react', 'react-dom'],

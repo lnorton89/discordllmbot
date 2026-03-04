@@ -12,7 +12,7 @@ import 'dotenv/config';
 import { Client, GatewayIntentBits, Partials } from 'discord.js';
 
 import { logger, initializeLogger } from '@shared/utils/logger.js';
-import { pruneOldMessages, resetPoolWrapper } from '@shared/storage/persistence.js';
+import { pruneOldMessages } from '@shared/storage/persistence.js';
 import { validateEnvironment } from '@shared/config/validation.js';
 
 import { startApi } from '@api/server.js';

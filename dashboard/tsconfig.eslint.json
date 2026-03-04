@@ -7,6 +7,7 @@
     "src/**/*.jsx",
     "eslint.config.js",
     "vite.config.js",
+    "vite.config.ts",
     "playwright.config.ts",
     "tests/**/*.ts"
   ],

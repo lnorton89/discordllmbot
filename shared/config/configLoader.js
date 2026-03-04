@@ -13,8 +13,6 @@ import {
     saveServerConfig as saveDbServerConfig,
     getGlobalConfig,
     saveGlobalConfig,
-    setSqlLoggingEnabled,
-    isSqlLoggingEnabled,
 } from '../storage/persistence.js';
 
 let cachedConfig = null;

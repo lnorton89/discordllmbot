@@ -25,7 +25,10 @@
       "@context": ["./src/context"],
       "@theme": ["./src/theme"],
       "@types": ["./src/types"],
-      "@shared/*": ["../shared/*"],
+      "@shared": ["../shared/dist"],
+      "@shared/*": ["../shared/dist/*"],
+      "@discordllmbot/shared": ["../shared/dist"],
+      "@discordllmbot/shared/*": ["../shared/dist/*"],
       "@/*": ["./src/*"],
       "@components/*": ["./src/components/*"],
       "@pages/*": ["./src/pages/*"],
@@ -38,5 +41,5 @@
     },
     "noImplicitAny": false
   },
-  "include": ["src"]
+  "include": ["src", "vite.config.ts"]
 }
