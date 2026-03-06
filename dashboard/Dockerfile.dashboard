@@ -1,16 +1,16 @@
-FROM node:25-alpine
+FROM oven/bun:1.2.14-alpine
 
 WORKDIR /usr/src/app
 
 # Copy all package.json files for workspaces
-COPY package*.json ./
-COPY bot/package*.json ./bot/
-COPY dashboard/package*.json ./dashboard/
-COPY shared/package*.json ./shared/
-COPY docs/package*.json ./docs/
+COPY package.json ./
+COPY bot/package.json ./bot/
+COPY dashboard/package.json ./dashboard/
+COPY shared/package.json ./shared/
+COPY docs/package.json ./docs/
 
 # Install dependencies for all workspaces
-RUN npm install --legacy-peer-deps
+RUN bun install
 RUN apk add --no-cache curl
 
 # Copy turbo configuration
@@ -20,7 +20,7 @@ COPY turbo.json ./
 COPY shared/ ./shared/
 
 # Build shared workspace first
-RUN npx turbo run build --filter=@discordllmbot/shared
+RUN bunx turbo run build --filter=@discordllmbot/shared
 
 # Copy bot workspace (for any shared types/API)
 COPY bot/ ./bot/
@@ -29,7 +29,7 @@ COPY bot/ ./bot/
 COPY dashboard/ ./dashboard/
 
 # Build dashboard with turbo (uses cache)
-RUN npx turbo run build --filter=discordllmbot-dashboard
+RUN bunx turbo run build --filter=discordllmbot-dashboard
 
 # Create .env file with Docker-specific API URL
 # Use 'bot' service name from docker-compose for internal networking
@@ -44,4 +44,4 @@ ENV VITE_WATCH_USE_POLLING=false
 WORKDIR /usr/src/app/dashboard
 EXPOSE 5173
 
-CMD ["npx", "turbo", "run", "dev", "--filter=discordllmbot-dashboard"]
+CMD ["bunx", "turbo", "run", "dev", "--filter=discordllmbot-dashboard"]

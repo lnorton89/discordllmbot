@@ -44,7 +44,7 @@ services:
       - /usr/src/app/bot/node_modules
       - /usr/src/app/shared/node_modules
       - turbo-cache:/usr/src/app/.turbo
-    command: npx turbo run dev:container --filter=discordllmbot
+    command: bunx turbo run dev:container --filter=discordllmbot
     ports:
       - "${API_PORT}:3000"
       - 9229:9229
