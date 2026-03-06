@@ -214,18 +214,18 @@ QWEN_API_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1
 
 3. **Start all services**:
    ```bash
-   npm run dev
+   bun run dev
    ```
 
 ### Docker commands
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start bot, db, dashboard, docs, pgadmin, sandbox |
-| `npm run dev:build` | Rebuild images and start all services |
-| `npm run dev:down` | Stop and remove all containers |
-| `npm run dev:all` | Start all services including docs |
-| `npm run dev:logs` | Follow all service logs |
+| `bun run dev` | Start bot, db, dashboard, docs, pgadmin, sandbox |
+| `bun run dev:build` | Rebuild images and start all services |
+| `bun run dev:down` | Stop and remove all containers |
+| `bun run dev:all` | Start all services including docs |
+| `bun run dev:logs` | Follow all service logs |
 | `docker-compose ps` | List running containers |
 | `docker-compose logs -f bot` | Follow bot logs |
 | `docker-compose logs -f dashboard` | Follow dashboard logs |
@@ -238,17 +238,17 @@ This project uses [Turborepo](https://turbo.build/) for optimized builds and cac
 
 | Command | Description |
 |---------|-------------|
-| `npm run build` | Build all workspaces (with caching) |
-| `npm run lint` | Lint all workspaces in parallel |
-| `npm run type-check` | Type-check all workspaces |
-| `npm run test` | Run tests across all workspaces |
-| `npm run build:bot` | Build only bot workspace |
-| `npm run build:dashboard` | Build only dashboard |
-| `npm run build:shared` | Build only shared utilities |
-| `npm run graph` | Generate dependency graph (PNG) |
-| `npm run graph:svg` | Generate interactive SVG dependency graph |
-| `npm run graph:circular` | Check for circular dependencies |
-| `npm run turbo:clean` | Clean Turbo cache |
+| `bun run build` | Build all workspaces (with caching) |
+| `bun run lint` | Lint all workspaces in parallel |
+| `bun run type-check` | Type-check all workspaces |
+| `bun run test` | Run tests across all workspaces |
+| `bun run build:bot` | Build only bot workspace |
+| `bun run build:dashboard` | Build only dashboard |
+| `bun run build:shared` | Build only shared utilities |
+| `bun run graph` | Generate dependency graph (PNG) |
+| `bun run graph:svg` | Generate interactive SVG dependency graph |
+| `bun run graph:circular` | Check for circular dependencies |
+| `bun run turbo:clean` | Clean Turbo cache |
 
 See [TURBO.md](TURBO.md) for detailed documentation.
 
@@ -277,7 +277,7 @@ Changes to source files automatically restart the bot via nodemon.
 **Database persistence**: PostgreSQL data is stored in the `postgres-data` volume. To reset:
 ```bash
 docker-compose down -v
-npm run dev
+bun run dev
 ```
 
 **Sandbox**: The Docker-in-Docker sandbox runs in privileged mode. Commands from bot messages containing "docker command" are executed in isolated ephemeral containers.
@@ -334,44 +334,44 @@ npm run dev
 ### Root (Monorepo with Turbo)
 
 ```bash
-npm run dev              # Start bot, db, dashboard with Docker
-npm run dev:build        # Rebuild and start
-npm run dev:down         # Stop containers
-npm run dev:all          # Start all services including docs
-npm run dev:logs         # Follow all logs
-npm run build            # Build all workspaces (Turbo cached)
-npm run lint             # Lint all workspaces (parallel)
-npm run type-check       # Type-check all workspaces
-npm run test             # Run tests across workspaces
-npm run docs             # Run docs dev server
-npm run docs:generate    # Generate documentation
-npm run graph            # Generate dependency graph
-npm run graph:circular   # Check for circular dependencies
+bun run dev              # Start bot, db, dashboard with Docker
+bun run dev:build        # Rebuild and start
+bun run dev:down         # Stop containers
+bun run dev:all          # Start all services including docs
+bun run dev:logs         # Follow all logs
+bun run build            # Build all workspaces (Turbo cached)
+bun run lint             # Lint all workspaces (parallel)
+bun run type-check       # Type-check all workspaces
+bun run test             # Run tests across workspaces
+bun run docs             # Run docs dev server
+bun run docs:generate    # Generate documentation
+bun run graph            # Generate dependency graph
+bun run graph:circular   # Check for circular dependencies
 ```
 
 ### Bot
 
 ```bash
 cd bot
-npm run dev              # Start with tsx (nodemon in container)
-npm run lint
-npm run type-check
-npm run start            # Run compiled dist/index.js
+bun run dev              # Start with tsx (nodemon in container)
+bun run lint
+bun run type-check
+bun run start            # Run compiled dist/index.js
 ```
 
 ### Dashboard
 
 ```bash
 cd dashboard
-npm run dev              # Start Vite dev server
-npm run lint
-npm run type-check
-npm run build            # Production build
-npm run preview          # Preview production build
-npm run test             # Run Playwright E2E tests
-npm run test:ui          # Run tests in UI mode
-npm run test:debug       # Run tests with debugger
-npm run test:report      # View HTML test report
+bun run dev              # Start Vite dev server
+bun run lint
+bun run type-check
+bun run build            # Production build
+bun run preview          # Preview production build
+bun run test             # Run Playwright E2E tests
+bun run test:ui          # Run tests in UI mode
+bun run test:debug       # Run tests with debugger
+bun run test:report      # View HTML test report
 ```
 
 ---
@@ -385,17 +385,17 @@ The dashboard uses Playwright for end-to-end testing. See [dashboard/TESTING.md]
 ```bash
 # Install dependencies (from dashboard directory)
 cd dashboard
-npm install
-npx playwright install
+bun install
+bunx playwright install
 
 # Run tests
-npm test
+bun run test
 
 # Run tests with UI
-npm run test:ui
+bun run test:ui
 
 # Run tests from root
-npm test
+bun run test
 ```
 
 ### Test Coverage
