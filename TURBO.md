@@ -38,54 +38,54 @@ Integrated with Turbo for containerized development:
 ### Local Development
 ```bash
 # Run builds across all workspaces (with caching)
-npm run build
+bun run build
 
 # Run linting across all workspaces
-npm run lint
+bun run lint
 
 # Run type checking across all workspaces
-npm run type-check
+bun run type-check
 
 # Run tests across all workspaces
-npm run test
+bun run test
 
 # Run docs generation
-npm run docs:generate
+bun run docs:generate
 ```
 
 ### Docker Compose with Turbo
 ```bash
 # Start all services with Turbo optimization
-npm run dev
+bun run dev
 
 # Start all services (including docs)
-npm run dev:all
+bun run dev:all
 
 # Rebuild and start
-npm run dev:build
+bun run dev:build
 
 # View logs
-npm run dev:logs
+bun run dev:logs
 
 # Stop all services
-npm run dev:down
+bun run dev:down
 ```
 
 ### Turbo-Specific Commands
 ```bash
 # View task dependency graph
-npm run turbo:graph
+bun run turbo:graph
 
 # Prune cache
-npm run turbo:prune
+bun run turbo:prune
 
 # Clean cache
-npm run turbo:clean
+bun run turbo:clean
 
 # Build specific workspace
-npm run build:bot
-npm run build:dashboard
-npm run build:shared
+bun run build:bot
+bun run build:dashboard
+bun run build:shared
 ```
 
 ## Task Pipeline
@@ -143,7 +143,7 @@ bot:
     - ./bot:/usr/src/app/bot
     - ./turbo.json:/usr/src/app/turbo.json
     - turbo-cache:/usr/src/app/.turbo
-  command: npx turbo run dev:container --filter=discordllmbot
+  command: bunx turbo run dev:container --filter=discordllmbot
   environment:
     - TURBO_TELEMETRY_DISABLED=1
 ```
@@ -168,12 +168,12 @@ Turbo considers these environment variables for cache hashing:
 
 ### Before (npm workspaces)
 ```bash
-npm run lint  # Sequential: bot && dashboard && shared
+bun run lint  # Sequential: bot && dashboard && shared
 ```
 
 ### After (Turbo)
 ```bash
-npm run lint  # Parallel with caching
+bun run lint  # Parallel with caching
 ```
 
 ## Benefits
@@ -189,32 +189,32 @@ npm run lint  # Parallel with caching
 
 ### View task graph
 ```bash
-npm run turbo:graph
+bun run turbo:graph
 ```
 
 ### Dry run (see what would execute)
 ```bash
-npx turbo run build --dry-run
+bunx turbo run build --dry-run
 ```
 
 ### Force rebuild (ignore cache)
 ```bash
-npx turbo run build --force
+bunx turbo run build --force
 ```
 
 ### View cache status
 ```bash
-npm run turbo:prune
+bun run turbo:prune
 ```
 
 ### Clean cache (if experiencing issues)
 ```bash
-npm run turbo:clean
+bun run turbo:clean
 ```
 
 ### Rebuild all containers with fresh cache
 ```bash
-npm run dev:build
+bun run dev:build
 ```
 
 ## Learn More
