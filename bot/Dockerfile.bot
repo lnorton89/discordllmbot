@@ -1,16 +1,16 @@
-FROM node:25-alpine
+FROM oven/bun:1.2.14-alpine
 
 WORKDIR /usr/src/app
 
 # Copy all package.json files for workspaces
-COPY package*.json ./
-COPY bot/package*.json ./bot/
-COPY dashboard/package*.json ./dashboard/
-COPY shared/package*.json ./shared/
-COPY docs/package*.json ./docs/
+COPY package.json ./
+COPY bot/package.json ./bot/
+COPY dashboard/package.json ./dashboard/
+COPY shared/package.json ./shared/
+COPY docs/package.json ./docs/
 
 # Install dependencies for all workspaces
-RUN npm install
+RUN bun install
 RUN apk add --no-cache curl
 
 # Copy turbo configuration
@@ -20,13 +20,13 @@ COPY turbo.json ./
 COPY shared/ ./shared/
 
 # Build shared workspace first (bot depends on it)
-RUN npx turbo run build --filter=@discordllmbot/shared
+RUN bunx turbo run build --filter=@discordllmbot/shared
 
 # Copy bot source
 COPY bot/ ./bot/
 
 # Build bot with turbo (uses cache)
-RUN npx turbo run build --filter=discordllmbot
+RUN bunx turbo run build --filter=discordllmbot
 
 WORKDIR /usr/src/app/bot
 EXPOSE 3000
